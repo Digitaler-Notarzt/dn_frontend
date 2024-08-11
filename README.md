@@ -1,6 +1,7 @@
 # digitaler_notarzt
 
-A new Flutter project.
+Flutter project for the diploma project "Digitaler Notarzt",
+which will be used for the ios and android smartphone app.
 
 ## Getting Started
 
