@@ -22,8 +22,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => ChatScreen(),
-        '/settings': (context) => SettingsScreen(),
-        '/profile': (context) => ProfileScreen(),
+        '/settings': (context) => const SettingsScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }
