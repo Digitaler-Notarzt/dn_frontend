@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
+import 'package:digitaler_notarzt/microphone_helper.dart';
 
 class ChatScreen extends StatefulWidget {
   @override
@@ -10,7 +13,14 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> messages = [];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final MicrophoneHelper _microphoneHelper = MicrophoneHelper(Directory.systemTemp.path);
   bool isKeyboardVisibl = false;
+  bool _isRecording = false;
+
+  void _toggleRecording() {
+    _microphoneHelper.toggleRecording();
+    setState(() {});
+  }
 
   void _sendMessage() {
     if (_controller.text.trim().isNotEmpty) {
@@ -127,9 +137,16 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           IconButton(
+            onPressed: _toggleRecording,
+            icon: Icon(_isRecording ? Icons.stop : Icons.mic),
+            color: Colors.greenAccent,
+            iconSize: 40.0,
+          ),
+          IconButton(
             onPressed: _sendMessage,
             icon: Icon(Icons.send),
             color: Colors.blueAccent,
+            iconSize: 40.0,
           ),
         ],
       ),
