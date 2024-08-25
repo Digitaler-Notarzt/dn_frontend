@@ -1,33 +1,29 @@
-import 'package:another_audio_recorder/another_audio_recorder.dart';
 import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 
 class MicrophoneHelper {
-  late AnotherAudioRecorder _audioRecorder;
-  bool _isRecording = false;
-  final String _filePath;
-
-  MicrophoneHelper(this._filePath) {
-    _audioRecorder = AnotherAudioRecorder(_filePath);
-  }
+  final AudioRecorder audioRecorder = AudioRecorder();
+  bool isRecording = false;
+  String? recordingPath;
 
   Future<void> toggleRecording() async {
-    if(_isRecording) {
-      final recording = await _audioRecorder.stop();
-      _isRecording = false;
-
-      if(recording != null) {
-        print('Aufnahme gespeichert unter: ${recording.path}');
+    if(isRecording) {
+      String? filePath = await audioRecorder.stop();
+      if(filePath != null) {
+        isRecording = false;
+        recordingPath = filePath;
+        print('Audio saved under: ${recordingPath}');
       }
-    }else{
-      try {
-        await _audioRecorder.start();
-        _isRecording = true;
-      } catch(e) {
-        print('Fehler beim Aufnahme starten: $e');
+    } else {
+      if(await audioRecorder.hasPermission()) {
+        isRecording = true;
+        recordingPath = null;
+        final Directory path = await getApplicationDocumentsDirectory();
+        final String filePath = p.join(path.path, 'recording.wav');
+        await audioRecorder.start(const RecordConfig(), path: filePath);
       }
     }
   }
-
-  bool get isRecording => _isRecording;
 }
-

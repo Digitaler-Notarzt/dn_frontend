@@ -1,10 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';
 
 class ChatScreen extends StatefulWidget {
+  const ChatScreen({super.key});
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -13,13 +13,21 @@ class _ChatScreenState extends State<ChatScreen> {
   List<Message> messages = [];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final MicrophoneHelper _microphoneHelper = MicrophoneHelper(Directory.systemTemp.path);
+  late MicrophoneHelper _microphoneHelper;
   bool isKeyboardVisibl = false;
   bool _isRecording = false;
 
-  void _toggleRecording() {
-    _microphoneHelper.toggleRecording();
-    setState(() {});
+  @override
+  void initState() {
+    super.initState();
+    _microphoneHelper = MicrophoneHelper();
+  }
+
+  void _toggleRecording() async {
+    await _microphoneHelper.toggleRecording();
+    setState(() {
+      _isRecording = _microphoneHelper.isRecording;
+    });
   }
 
   void _sendMessage() {
@@ -47,7 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _scrollToBottom() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
     );
   }
@@ -96,10 +104,10 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Text(
               message.isUserMessage ? 'Ich' : 'Digitaler Notarzt',
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black54),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.black54),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Container(
               constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.65),
@@ -107,10 +115,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: message.isUserMessage ? Colors.blueAccent : Colors.grey,
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
               child: Text(
                 message.text,
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ],
@@ -144,7 +152,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           IconButton(
             onPressed: _sendMessage,
-            icon: Icon(Icons.send),
+            icon: const Icon(Icons.send),
             color: Colors.blueAccent,
             iconSize: 40.0,
           ),
