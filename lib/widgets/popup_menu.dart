@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class PopupMenu extends StatelessWidget {
-  const PopupMenu({Key? key}) : super(key: key);
+  final void Function() dismissKeyboard;
+
+  const PopupMenu({Key? key, required this.dismissKeyboard}) : super(key: key);
 
   void _onMenuSelected(BuildContext context, String result) {
     switch(result) {
@@ -23,6 +25,7 @@ class PopupMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       onSelected: (String result) {
+        dismissKeyboard();
         _onMenuSelected(context, result);
       },
       itemBuilder: (BuildContext context) => const <PopupMenuEntry<String>>[

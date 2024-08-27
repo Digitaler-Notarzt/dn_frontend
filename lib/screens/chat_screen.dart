@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';
@@ -13,6 +15,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   List<Message> messages = [];
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   late MicrophoneHelper _microphoneHelper;
   bool isKeyboardVisibl = false;
@@ -23,6 +26,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _microphoneHelper = MicrophoneHelper();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _dismissKeyboard();
+    });
   }
 
   void _toggleRecording() async {
@@ -65,7 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
         messages
             .add(Message(text: _controller.text.trim(), isUserMessage: true));
         _controller.clear();
-
+        sleep(Durations.medium4);
         messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
 
         _scrollToBottom();
@@ -78,7 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _dismissKeyboard() {
-    FocusScope.of(context).unfocus();
+    _focusNode.unfocus();
   }
 
   void _scrollToBottom() {
@@ -95,8 +101,8 @@ class _ChatScreenState extends State<ChatScreen> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
           title: const Text('Digitaler Notarzt'),
-          actions: const [
-            PopupMenu(),
+          actions: [
+            PopupMenu(dismissKeyboard: _dismissKeyboard),
           ],
         ),
         body: SafeArea(
@@ -220,6 +226,8 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: TextField(
+              autofocus: false,
+              focusNode: _focusNode,
               controller: _controller,
               decoration: InputDecoration(
                 hintText: 'Nachricht eingeben...',
