@@ -1,4 +1,4 @@
-package com.example.digitaler_notarzt
+package at.diploma.digitaler_notarzt
 
 import io.flutter.embedding.android.FlutterActivity
 
