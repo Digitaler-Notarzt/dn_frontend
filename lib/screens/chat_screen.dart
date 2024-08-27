@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';
+import 'package:digitaler_notarzt/widgets/popup_menu.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -66,26 +67,28 @@ class _ChatScreenState extends State<ChatScreen> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
           title: const Text('Digitaler Notarzt'),
-          actions: [
-            _buildPopupMenu(context),
+          actions: const [
+            PopupMenu(),
           ],
         ),
-        body: GestureDetector(
-          onTap: _dismissKeyboard,
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  reverse: false,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    return _buildMessageBubble(messages[index]);
-                  },
+        body: SafeArea(
+          child: GestureDetector(
+            onTap: _dismissKeyboard,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    reverse: false,
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      return _buildMessageBubble(messages[index]);
+                    },
+                  ),
                 ),
-              ),
-              _buildMessageInput()
-            ],
+                _buildMessageInput()
+              ],
+            ),
           ),
         ));
   }
@@ -123,14 +126,13 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
-        // child:
       ),
     );
   }
 
   Widget _buildMessageInput() {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal:  8.0),
       child: Row(
         children: [
           Expanded(
@@ -158,38 +160,6 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPopupMenu(BuildContext context) {
-    return PopupMenuButton<String>(
-      onSelected: (String result) {
-        switch (result) {
-          case 'settings':
-            Navigator.pushNamed(context, '/settings');
-            break;
-          case 'profile':
-            Navigator.pushNamed(context, '/profile');
-            break;
-          case 'logout':
-            print('User pressed logout');
-            break;
-        }
-      },
-      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        const PopupMenuItem<String>(
-          value: 'settings',
-          child: Text('Einstellungen'),
-        ),
-        const PopupMenuItem<String>(
-          value: 'profile',
-          child: Text('Profil'),
-        ),
-        const PopupMenuItem<String>(
-          value: 'logout',
-          child: Text('Abmelden'),
-        ),
-      ],
     );
   }
 }
