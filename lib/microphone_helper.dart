@@ -21,7 +21,8 @@ class MicrophoneHelper {
         isRecording = true;
         recordingPath = null;
         final Directory path = await getApplicationDocumentsDirectory();
-        final String filePath = p.join(path.path, 'recording.wav');
+        final String timestamp = '${DateTime.timestamp().hour}_${DateTime.timestamp().minute}';
+        final String filePath = p.join(path.path, 'recording$timestamp.wav');
         await audioRecorder.start(const RecordConfig(), path: filePath);
       }
     }
