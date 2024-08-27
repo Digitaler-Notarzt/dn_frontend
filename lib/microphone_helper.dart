@@ -14,7 +14,7 @@ class MicrophoneHelper {
       if(filePath != null) {
         isRecording = false;
         recordingPath = filePath;
-        print('Audio saved under: ${recordingPath}');
+        print('Audio saved under: $recordingPath');
       }
     } else {
       if(await audioRecorder.hasPermission()) {
