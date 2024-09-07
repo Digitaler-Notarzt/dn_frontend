@@ -8,6 +8,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: const Center(
         child: Text('Profil bearbeiten...'),

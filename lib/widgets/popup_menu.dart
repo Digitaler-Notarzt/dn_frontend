@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 
 class PopupMenu extends StatelessWidget {
   final void Function() dismissKeyboard;
+  final storage;
 
-  const PopupMenu({Key? key, required this.dismissKeyboard}) : super(key: key);
+  const PopupMenu({Key? key, required this.storage, required this.dismissKeyboard}) : super(key: key);
 
-  void _onMenuSelected(BuildContext context, String result) {
+  void _onMenuSelected(BuildContext context, String result) async {
     switch(result) {
       case 'settings':
         Navigator.pushNamed(context, '/settings');
@@ -15,6 +16,8 @@ class PopupMenu extends StatelessWidget {
         break;
       case 'logout':
         print('User pressed logout');
+        await storage.delete(key: 'auth_token');
+        Navigator.pushReplacementNamed(context, '/');
         break;
       default:
         throw UnimplementedError();

@@ -1,3 +1,4 @@
+import 'package:digitaler_notarzt/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'screens/chat_screen.dart';
 import 'screens/settings_screen.dart';
@@ -21,7 +22,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const ChatScreen(),
+        '/': (context) => const LoginScreen(),
+        '/chat': (context) => const ChatScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/profile': (context) => const ProfileScreen(),
       },

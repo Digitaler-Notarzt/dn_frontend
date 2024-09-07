@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';
 import 'package:digitaler_notarzt/widgets/popup_menu.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -21,10 +22,27 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isKeyboardVisibl = false;
   bool _isRecording = false;
   int startTime = 0;
+  bool _isLoading = true;
+  String? _token;
+
+  final storage = const FlutterSecureStorage();
+  Future<String?> _getToken() async {
+    return await storage.read(key: 'auth_token');
+  }
+
+  Future<void> _checkLoginStatus() async {
+    String? token = await _getToken();
+    setState(() {
+      _token = token;
+      _isLoading = false;
+    });
+    print('Token: ${_token}');
+  }
 
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
     _microphoneHelper = MicrophoneHelper();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _dismissKeyboard();
@@ -55,8 +73,11 @@ class _ChatScreenState extends State<ChatScreen> {
     String formattedDuration = _formatDuration(duration);
 
     setState(() {
-      messages.add(Message(audioFilePath: audioFilePath, audioDuration: formattedDuration, isUserMessage: true));
-      _scrollToBottom();
+      messages.add(Message(
+          audioFilePath: audioFilePath,
+          audioDuration: formattedDuration,
+          isUserMessage: true));
+      //_scrollToBottom();
     });
 
     messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
@@ -72,11 +93,11 @@ class _ChatScreenState extends State<ChatScreen> {
             .add(Message(text: _controller.text.trim(), isUserMessage: true));
         _controller.clear();
         sleep(Durations.medium4);
-        messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
 
-        _scrollToBottom();
+        //_scrollToBottom();
       });
 
+      messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
@@ -88,48 +109,70 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          title: const Text('Digitaler Notarzt'),
-          actions: [
-            PopupMenu(dismissKeyboard: _dismissKeyboard),
-          ],
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
-        body: SafeArea(
-          child: GestureDetector(
-            onTap: _dismissKeyboard,
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    reverse: false,
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
+      );
+    }
+
+    if (_token == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('Nicht autorisiert'),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: const Text('Digitaler Notarzt'),
+        actions: [
+          PopupMenu(
+            dismissKeyboard: _dismissKeyboard,
+            storage: storage,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: GestureDetector(
+          onTap: _dismissKeyboard,
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  reverse: false,
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index];
                     if (message.isAudioMessage) {
                       return _buildAudioMessageBubble(message);
                     } else {
                       return _buildTextMessageBubble(message);
                     }
-                    },
-                  ),
+                  },
                 ),
-                _buildMessageInput()
-              ],
-            ),
+              ),
+              _buildMessageInput()
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Widget _buildTextMessageBubble(Message message) {
@@ -221,7 +264,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageInput() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal:  8.0),
+      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
       child: Row(
         children: [
           Expanded(
