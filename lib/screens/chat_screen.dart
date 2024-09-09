@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';
@@ -55,7 +55,10 @@ class _ChatScreenState extends State<ChatScreen> {
     String formattedDuration = _formatDuration(duration);
 
     setState(() {
-      messages.add(Message(audioFilePath: audioFilePath, audioDuration: formattedDuration, isUserMessage: true));
+      messages.add(Message(
+          audioFilePath: audioFilePath,
+          audioDuration: formattedDuration,
+          isUserMessage: true));
       _scrollToBottom();
     });
 
@@ -66,22 +69,39 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendMessage() {
-    if (_controller.text.trim().isNotEmpty) {
-      setState(() {
-        messages
-            .add(Message(text: _controller.text.trim(), isUserMessage: true));
-        _controller.clear();
-        sleep(Durations.medium4);
-        messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
+  if (_controller.text.trim().isNotEmpty) {
+    // Nachricht senden und das UI aktualisieren
+    setState(() {
+      messages.add(Message(text: _controller.text.trim(), isUserMessage: true));
+      _controller.clear();
+      _scrollToBottom();
+    });
 
-        _scrollToBottom();
+    if (kIsWeb) {
+      // Verzögerte Antwort im Web
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() {
+          messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
+          _scrollToBottom(); // Scroll nach dem Empfang der Antwort
+        });
       });
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToBottom();
+    } else {
+      // Verzögerte Antwort auf mobilen Geräten
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() {
+          messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
+          _scrollToBottom(); // Scroll nach dem Empfang der Antwort
+        });
       });
     }
+
+    // Scroll nach dem Senden der Nachricht
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
+}
+
 
   void _dismissKeyboard() {
     _focusNode.unfocus();
@@ -117,11 +137,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
                       final message = messages[index];
-                    if (message.isAudioMessage) {
-                      return _buildAudioMessageBubble(message);
-                    } else {
-                      return _buildTextMessageBubble(message);
-                    }
+                      if (message.isAudioMessage) {
+                        return _buildAudioMessageBubble(message);
+                      } else {
+                        return _buildTextMessageBubble(message);
+                      }
                     },
                   ),
                 ),
@@ -221,7 +241,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageInput() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal:  8.0),
+      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
       child: Row(
         children: [
           Expanded(
