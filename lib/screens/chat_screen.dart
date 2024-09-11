@@ -32,17 +32,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _toggleRecording() async {
-    await _microphoneHelper.toggleRecording();
-    if (!_microphoneHelper.isRecording) {
+    await _microphoneHelper.toggleStreaming();
+    if (!_microphoneHelper.isStreaming) {
       int duration = DateTime.timestamp().millisecondsSinceEpoch - startTime;
       if (kIsWeb) {
         _sendAudioMessage('audioPathEx', duration);
-      } else {
-        _sendAudioMessage(_microphoneHelper.recordingPath!, duration);
       }
+      // } else {
+      //   _sendAudioMessage(_microphoneHelper.recordingPath!, duration);
+      // }
     }
     setState(() {
-      _isRecording = _microphoneHelper.isRecording;
+      _isRecording = _microphoneHelper.isStreaming;
       startTime = DateTime.timestamp().millisecondsSinceEpoch;
     });
   }
