@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Digitaler Notarzt',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.grey),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEB2340), dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
         useMaterial3: true,
       ),
       initialRoute: '/',
