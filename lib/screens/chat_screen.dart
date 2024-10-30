@@ -29,6 +29,7 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _dismissKeyboard();
     });
+    messages.add(Message(isUserMessage: false, text: "Hallo! Ich bin hier, um dich nach deinem Schlaganfall zu unterstützen. Wie kann ich dir helfen?"));
   }
 
   void _toggleRecording() async {
