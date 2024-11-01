@@ -1,30 +1,65 @@
-import 'dart:io';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:record/record.dart';
+import 'package:http/http.dart' as http;
 
 class MicrophoneHelper {
-  final AudioRecorder audioRecorder = AudioRecorder();
-  bool isRecording = false;
-  String? recordingPath;
+  final AudioRecorder streamer = AudioRecorder();
+  bool isStreaming = false;
+  late Stream<List<int>> _audioStreamSubscription;
 
-  Future<void> toggleRecording() async {
-    if(isRecording) {
-      String? filePath = await audioRecorder.stop();
-      if(filePath != null) {
-        isRecording = false;
-        recordingPath = filePath;
-        print('Audio saved under: $recordingPath');
-      }
+  Future<void> stopStreaming() async {
+    await streamer.stop();
+    isStreaming = false;
+  }
+
+  Future<void> startStreaming() async {
+    await streamer.hasPermission();
+    _audioStreamSubscription = await streamer.startStream(
+      const RecordConfig(
+        encoder: AudioEncoder.pcm16bits,
+        numChannels: 2,
+        sampleRate: 44100,
+        bitRate: 128000,
+        echoCancel: true,
+        noiseSuppress: true,
+      ),
+    );
+    isStreaming = true;
+    await stream('http://127.0.0.1:8000/audio-stream');
+  }
+
+  Future<void> toggleStreaming() async {
+    if (isStreaming) {
+      await stopStreaming();
+      print("Stream stopped");
     } else {
-      if(await audioRecorder.hasPermission()) {
-        isRecording = true;
-        recordingPath = null;
-        final Directory path = await getApplicationDocumentsDirectory();
-        final String timestamp = '${DateTime.timestamp().hour}_${DateTime.timestamp().minute}';
-        final String filePath = p.join(path.path, 'recording$timestamp.wav');
-        await audioRecorder.start(const RecordConfig(), path: filePath);
-      }
+      await startStreaming();
+      print("Stream started");
     }
+  }
+
+  Future<void> stream(String backendUrl) async {
+    final url = Uri.parse(backendUrl);
+
+    _audioStreamSubscription.listen((audioStreamData) async {
+      if (audioStreamData.isNotEmpty) {
+        // if may not work
+        try {
+          var response = await http.post(
+            url,
+            headers: {
+              'Content-Type': 'application/octet-stream',
+            },
+            body: audioStreamData,
+          );
+
+          if (response.statusCode != 200) {
+            print('Fehler beim Senden des Streams: ${response.statusCode}');
+          }
+        } catch (e) {
+          print(e);
+        }
+      }
+    });
   }
 }

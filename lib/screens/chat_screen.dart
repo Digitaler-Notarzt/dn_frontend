@@ -32,13 +32,18 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _toggleRecording() async {
-    await _microphoneHelper.toggleRecording();
-    if (!_microphoneHelper.isRecording) {
+    await _microphoneHelper.toggleStreaming();
+    if (!_microphoneHelper.isStreaming) {
       int duration = DateTime.timestamp().millisecondsSinceEpoch - startTime;
-      _sendAudioMessage(_microphoneHelper.recordingPath!, duration);
+      //sets audio path to default value. No real path!
+      _sendAudioMessage('audioPathEx', duration);
+
+      // } else {
+      //   _sendAudioMessage(_microphoneHelper.recordingPath!, duration);
+      // }
     }
     setState(() {
-      _isRecording = _microphoneHelper.isRecording;
+      _isRecording = _microphoneHelper.isStreaming;
       startTime = DateTime.timestamp().millisecondsSinceEpoch;
     });
   }
@@ -69,39 +74,41 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendMessage() {
-  if (_controller.text.trim().isNotEmpty) {
-    // Nachricht senden und das UI aktualisieren
-    setState(() {
-      messages.add(Message(text: _controller.text.trim(), isUserMessage: true));
-      _controller.clear();
-      _scrollToBottom();
-    });
-
-    if (kIsWeb) {
-      // Verzögerte Antwort im Web
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
-          _scrollToBottom(); // Scroll nach dem Empfang der Antwort
-        });
+    if (_controller.text.trim().isNotEmpty) {
+      // Nachricht senden und das UI aktualisieren
+      setState(() {
+        messages
+            .add(Message(text: _controller.text.trim(), isUserMessage: true));
+        _controller.clear();
+        _scrollToBottom();
       });
-    } else {
-      // Verzögerte Antwort auf mobilen Geräten
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          messages.add(Message(text: 'Nachricht erhalten', isUserMessage: false));
-          _scrollToBottom(); // Scroll nach dem Empfang der Antwort
+
+      if (kIsWeb) {
+        // Verzögerte Antwort im Web
+        Future.delayed(const Duration(seconds: 2), () {
+          setState(() {
+            messages
+                .add(Message(text: 'Nachricht erhalten', isUserMessage: false));
+            _scrollToBottom(); // Scroll nach dem Empfang der Antwort
+          });
         });
+      } else {
+        // Verzögerte Antwort auf mobilen Geräten
+        Future.delayed(const Duration(seconds: 2), () {
+          setState(() {
+            messages
+                .add(Message(text: 'Nachricht erhalten', isUserMessage: false));
+            _scrollToBottom(); // Scroll nach dem Empfang der Antwort
+          });
+        });
+      }
+
+      // Scroll nach dem Senden der Nachricht
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
       });
     }
-
-    // Scroll nach dem Senden der Nachricht
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToBottom();
-    });
   }
-}
-
 
   void _dismissKeyboard() {
     _focusNode.unfocus();
@@ -241,7 +248,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageInput() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       child: Row(
         children: [
           Expanded(
