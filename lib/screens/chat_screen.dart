@@ -35,9 +35,9 @@ class _ChatScreenState extends State<ChatScreen> {
     await _microphoneHelper.toggleStreaming();
     if (!_microphoneHelper.isStreaming) {
       int duration = DateTime.timestamp().millisecondsSinceEpoch - startTime;
-      if (kIsWeb) {
-        _sendAudioMessage('audioPathEx', duration);
-      }
+      //sets audio path to default value. No real path!
+      _sendAudioMessage('audioPathEx', duration);
+
       // } else {
       //   _sendAudioMessage(_microphoneHelper.recordingPath!, duration);
       // }
