@@ -16,9 +16,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Digitaler Notarzt',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFEB2340), dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
-        useMaterial3: true,
-      ),
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFFEB2340),
+              dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
+          useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFFEB2340),
+              foregroundColor: Colors.white,
+              elevation: 20,
+              centerTitle: true),
+              ),
       initialRoute: '/',
       routes: {
         '/': (context) => const ChatScreen(),

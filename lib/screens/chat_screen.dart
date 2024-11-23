@@ -267,13 +267,13 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             onPressed: _toggleRecording,
             icon: Icon(_isRecording ? Icons.stop : Icons.mic),
-            color: Colors.greenAccent,
+            color: Colors.green,
             iconSize: 40.0,
           ),
           IconButton(
             onPressed: _sendMessage,
             icon: const Icon(Icons.send),
-            color: Colors.blueAccent,
+            color: Colors.blue,
             iconSize: 40.0,
           ),
         ],
