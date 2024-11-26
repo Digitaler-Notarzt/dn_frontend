@@ -34,7 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _toggleRecording() async {
     await _microphoneHelper.toggleStreaming();
     if (!_microphoneHelper.isStreaming) {
-      int duration = DateTime.timestamp().millisecondsSinceEpoch - startTime;
+      int duration = DateTime.now().millisecondsSinceEpoch - startTime;
       //sets audio path to default value. No real path!
       _sendAudioMessage('audioPathEx', duration);
 
