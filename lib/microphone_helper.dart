@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:digitaler_notarzt/streamreceiver.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -65,7 +66,10 @@ class MicrophoneHelper {
     const startmsg = {'type': 'start_audio'};
     const endmsg = {'type': 'stop_audio'};
 
+    final receiver = StreamReceiver(channel);
+    receiver.listen();
     try {
+      await channel.ready.timeout(const Duration(seconds: 3));
       // Verbindung starten
       print('WebSocket gestartet, Nachricht gesendet: ${jsonEncode(startmsg)}');
       channel.sink.add(jsonEncode(startmsg));
