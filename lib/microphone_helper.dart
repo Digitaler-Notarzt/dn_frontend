@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'dart:convert';
+
 import 'package:record/record.dart';
-import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MicrophoneHelper {
   final AudioRecorder streamer = AudioRecorder();
@@ -8,58 +9,89 @@ class MicrophoneHelper {
   late Stream<List<int>> _audioStreamSubscription;
 
   Future<void> stopStreaming() async {
+    if (!isStreaming) return;
+
     await streamer.stop();
+    _audioStreamSubscription = const Stream.empty();
     isStreaming = false;
+    print("Streaming stopped");
   }
 
   Future<void> startStreaming() async {
-    await streamer.hasPermission();
+    if (isStreaming) {
+      print("Already streaming");
+      return;
+    }
+
+    final hasPermission = await streamer.hasPermission();
+    if (!hasPermission) {
+      print("Microphone permission denied");
+      return;
+    }
+
     _audioStreamSubscription = await streamer.startStream(
       const RecordConfig(
         encoder: AudioEncoder.pcm16bits,
-        numChannels: 2,
+        numChannels: 1,
         sampleRate: 44100,
-        bitRate: 128000,
-        echoCancel: true,
-        noiseSuppress: true,
+        //bitRate: 128000,
+        //echoCancel: true,
+        //noiseSuppress: true,
       ),
     );
     isStreaming = true;
-    await stream('http://127.0.0.1:8000/audio-stream');
+
+    try {
+      await stream('ws://192.168.27.122:8000/audio-stream');
+    } catch (e) {
+      print("Error while streaming: $e");
+    }
   }
 
   Future<void> toggleStreaming() async {
     if (isStreaming) {
       await stopStreaming();
-      print("Stream stopped");
     } else {
       await startStreaming();
-      print("Stream started");
     }
   }
 
+  //https://docs.flutter.dev/cookbook/networking/web-sockets
+  //https://pub.dev/packages/web_socket_channel
+  //https://docs.flutter.dev/data-and-backend/serialization/json
+
   Future<void> stream(String backendUrl) async {
-    final url = Uri.parse(backendUrl);
+    final channel = WebSocketChannel.connect(Uri.parse(backendUrl));
+    const startmsg = {'type': 'start_audio'};
+    const endmsg = {'type': 'stop_audio'};
 
-    _audioStreamSubscription.listen((audioStreamData) async {
-      if (audioStreamData.isNotEmpty) {
-        // if may not work
-        try {
-          var response = await http.post(
-            url,
-            headers: {
-              'Content-Type': 'application/octet-stream',
-            },
-            body: audioStreamData,
-          );
+    try {
+      // Verbindung starten
+      print('WebSocket gestartet, Nachricht gesendet: ${jsonEncode(startmsg)}');
+      channel.sink.add(jsonEncode(startmsg));
 
-          if (response.statusCode != 200) {
-            print('Fehler beim Senden des Streams: ${response.statusCode}');
+      // Stream-Daten anhören
+      _audioStreamSubscription.listen((audioStreamData) {
+        if (audioStreamData.isNotEmpty) {
+          try {
+            // Senden der Audio-Daten über den WebSocket
+            channel.sink.add(audioStreamData);
+            print('Audio-Datenpaket gesendet');
+          } catch (e) {
+            print('Fehler beim Senden von Audio-Daten: $e');
           }
-        } catch (e) {
-          print(e);
         }
-      }
-    });
+      }, onDone: () {
+        // Beenden der Verbindung, wenn der Stream abgeschlossen ist
+        print('Stream beendet, Nachricht gesendet: ${jsonEncode(endmsg)}');
+        channel.sink.add(jsonEncode(endmsg));
+        channel.sink.close();
+      }, onError: (error) {
+        print('Fehler beim Streamen: $error');
+        channel.sink.close();
+      });
+    } catch (e) {
+      print('WebSocket-Fehler: $e');
+    }
   }
 }
