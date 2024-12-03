@@ -180,7 +180,7 @@ class _ChatScreenState extends State<ChatScreen> {
               constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.65),
               decoration: BoxDecoration(
-                color: message.isUserMessage ? Colors.blueAccent : Colors.grey,
+                color: message.isUserMessage ? Colors.redAccent : Colors.grey,
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
@@ -217,7 +217,7 @@ class _ChatScreenState extends State<ChatScreen> {
               constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.65),
               decoration: BoxDecoration(
-                color: message.isUserMessage ? Colors.blueAccent : Colors.grey,
+                color: message.isUserMessage ? Colors.redAccent : Colors.grey,
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
@@ -272,7 +272,7 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             onPressed: _sendMessage,
             icon: const Icon(Icons.send),
-            color: Colors.blue,
+            color: Colors.green,
             iconSize: 40.0,
           ),
         ],
