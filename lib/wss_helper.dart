@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
@@ -17,8 +18,10 @@ class WssHelper {
       print('[WssHelper] WebSocket connection to $backendUrl established.');
     } catch (e) {
       //print('[WssHelper] Failed to connect: $e');
+      ErrorNotifier().showError(e.toString());
       if (e is WebSocketChannelException) {
         print('WebSocketChannelException: ${e.message}');
+        ErrorNotifier().showError(e.toString());
         if (e.inner != null) {
           final innerError = e.inner as dynamic;
           print('Inner error: ${innerError.message}');

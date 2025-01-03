@@ -1,3 +1,4 @@
+import 'package:digitaler_notarzt/widgets/error_listener.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
@@ -131,28 +132,30 @@ class _ChatScreenState extends State<ChatScreen> {
             PopupMenu(dismissKeyboard: _dismissKeyboard),
           ],
         ),
-        body: SafeArea(
-          child: GestureDetector(
-            onTap: _dismissKeyboard,
-            child: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    reverse: false,
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      if (message.isAudioMessage) {
-                        return _buildAudioMessageBubble(message);
-                      } else {
-                        return _buildTextMessageBubble(message);
-                      }
-                    },
+        body: ErrorListener(
+          child: SafeArea(
+            child: GestureDetector(
+              onTap: _dismissKeyboard,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      reverse: false,
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        if (message.isAudioMessage) {
+                          return _buildAudioMessageBubble(message);
+                        } else {
+                          return _buildTextMessageBubble(message);
+                        }
+                      },
+                    ),
                   ),
-                ),
-                _buildMessageInput()
-              ],
+                  _buildMessageInput()
+                ],
+              ),
             ),
           ),
         ));
