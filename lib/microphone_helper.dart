@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:digitaler_notarzt/wss_helper.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MicrophoneHelper {
   final AudioRecorder streamer = AudioRecorder();
+  final WssHelper _wssHelper = WssHelper();
   bool isStreaming = false;
   late Stream<List<int>> _audioStreamSubscription;
 
@@ -13,6 +15,7 @@ class MicrophoneHelper {
 
     await streamer.stop();
     _audioStreamSubscription = const Stream.empty();
+    //_wssHelper.closeConnection();
     isStreaming = false;
     print("Streaming stopped");
   }
@@ -39,10 +42,18 @@ class MicrophoneHelper {
         //noiseSuppress: true,
       ),
     );
-    isStreaming = true;
 
     try {
-      await stream('ws://192.168.27.122:8000/audio-stream');
+      //await stream('ws://10.0.0.112:8000/audio-stream?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM1OTI0NjA3fQ.Vb-5OtZbJ_X6pE_jz8LMM-X6xT5wrVaSKNXQr43O5zA');
+      bool con = await _wssHelper.initialize(
+          'ws://10.0.0.112:8000/audio-stream?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM1OTI0NjA3fQ.Vb-5OtZbJ_X6pE_jz8LMM-X6xT5wrVaSKNXQr43O5zA');
+      if (con) {
+        isStreaming = true;
+        await _wssHelper.streamAudio(_audioStreamSubscription);
+      } else {
+        throw Exception("Backend not reachable");
+      }
+      //isStreaming = true;
     } catch (e) {
       print("Error while streaming: $e");
     }
@@ -62,6 +73,7 @@ class MicrophoneHelper {
 
   Future<void> stream(String backendUrl) async {
     final channel = WebSocketChannel.connect(Uri.parse(backendUrl));
+    await channel.ready.timeout(const Duration(seconds: 5));
     const startmsg = {'type': 'start_audio'};
     const endmsg = {'type': 'stop_audio'};
 
