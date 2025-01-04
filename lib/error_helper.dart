@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ErrorNotifier{
+  /// Global Error Handler.
+  
   static final ErrorNotifier _instance = ErrorNotifier._internal();
   factory ErrorNotifier() => _instance;
   ErrorNotifier._internal();

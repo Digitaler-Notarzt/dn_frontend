@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
+
 class Message{
-  final String? text;
+  final Text? text;
   final String? audioFilePath;
   final String? audioDuration;
   final bool isUserMessage;

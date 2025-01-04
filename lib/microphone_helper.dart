@@ -8,6 +8,7 @@ class MicrophoneHelper {
   final AudioRecorder streamer = AudioRecorder();
   final WssHelper _wssHelper = WssHelper();
   bool isStreaming = false;
+  late bool lastStreamSuccess = false;
   late Stream<List<int>> _audioStreamSubscription;
 
   Future<void> stopStreaming() async {
@@ -44,13 +45,14 @@ class MicrophoneHelper {
     );
 
     try {
-      //await stream('ws://10.0.0.112:8000/audio-stream?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM1OTI0NjA3fQ.Vb-5OtZbJ_X6pE_jz8LMM-X6xT5wrVaSKNXQr43O5zA');
+      //await stream('ws://10.0.0.112:8000/audio-stream?token=');
       bool con = await _wssHelper.initialize(
-          'ws://10.0.0.112:8000/audio-stream?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM1OTI0NjA3fQ.Vb-5OtZbJ_X6pE_jz8LMM-X6xT5wrVaSKNXQr43O5zA');
+          'ws://10.0.0.112:8000/audio-stream?token=');
       if (con) {
         isStreaming = true;
-        await _wssHelper.streamAudio(_audioStreamSubscription);
+        lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription);
       } else {
+        lastStreamSuccess = false;
         throw Exception("Backend not reachable");
       }
       //isStreaming = true;

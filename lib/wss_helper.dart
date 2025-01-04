@@ -1,16 +1,16 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
 class WssHelper {
   late WebSocketChannel _channel;
+  String jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM2MDEyNDIzfQ.ZJa2n0Pwjs0PjdCX5hnIDZbV0Zx8jZy6IMSRxA3JXAo";
 
   Future<bool> initialize(String backendUrl) async {
     print('[WssHelper] Initializing WebSocket connection to $backendUrl');
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(backendUrl));
+      _channel = WebSocketChannel.connect(Uri.parse(backendUrl+jwt));
       await _channel.ready.timeout(const Duration(seconds: 5));
       if (_channel.closeCode == null) {
         return true;
@@ -18,10 +18,9 @@ class WssHelper {
       print('[WssHelper] WebSocket connection to $backendUrl established.');
     } catch (e) {
       //print('[WssHelper] Failed to connect: $e');
-      ErrorNotifier().showError(e.toString());
+      ErrorNotifier().showError("Server connection Error:\n${e.toString()}");
       if (e is WebSocketChannelException) {
         print('WebSocketChannelException: ${e.message}');
-        ErrorNotifier().showError(e.toString());
         if (e.inner != null) {
           final innerError = e.inner as dynamic;
           print('Inner error: ${innerError.message}');
@@ -45,7 +44,7 @@ class WssHelper {
   }
 
   /// Startet das Streamen von Audio-Daten
-  Future<void> streamAudio(Stream<List<int>> audioStream) async {
+  Future<bool> streamAudio(Stream<List<int>> audioStream) async {
     const startMsg = {'type': 'start_audio'};
     const endMsg = {'type': 'stop_audio'};
 
@@ -78,7 +77,7 @@ class WssHelper {
         },
         onError: (error) {
           print('[WssHelper] Error during audio streaming: $error');
-          _channel.sink.close();
+          _channel.sink.close(status.protocolError);
         },
       );
 
@@ -89,6 +88,7 @@ class WssHelper {
       print('[WssHelper] WebSocket error during audio streaming: $e');
       _channel.sink.close(status.goingAway);
     }
+    return true;
   }
 
   void closeConnection() {
