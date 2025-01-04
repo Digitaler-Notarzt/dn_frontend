@@ -1,16 +1,20 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
 class WssHelper {
   late WebSocketChannel _channel;
-  String jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM2MDEyNDIzfQ.ZJa2n0Pwjs0PjdCX5hnIDZbV0Zx8jZy6IMSRxA3JXAo";
+  String jwt =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM2MDIzOTU1fQ.Jy9ERWwRWpKdekW_DFyoNZ_rMtI1F_ceCFXDGlZxfik";
+  Completer<void>? _streamingCompleter;
 
   Future<bool> initialize(String backendUrl) async {
     print('[WssHelper] Initializing WebSocket connection to $backendUrl');
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(backendUrl+jwt));
+      _channel = WebSocketChannel.connect(Uri.parse(backendUrl + jwt));
       await _channel.ready.timeout(const Duration(seconds: 5));
       if (_channel.closeCode == null) {
         return true;
@@ -47,11 +51,44 @@ class WssHelper {
   Future<bool> streamAudio(Stream<List<int>> audioStream) async {
     const startMsg = {'type': 'start_audio'};
     const endMsg = {'type': 'stop_audio'};
+    final Completer<String?> transcription = Completer<String?>();
 
+    _streamingCompleter = Completer<void>();
     try {
       // Start-Nachricht senden
       print('[WssHelper] Sending start audio message.');
       sendMessage(jsonEncode(startMsg));
+
+      _channel.stream.listen(
+        (response) {
+          print('[WssReceiver] Received message from Server: $response');
+          if (response.toString().contains("Transcription")) {
+            if (!transcription.isCompleted) {
+              transcription.complete(response);
+              _streamingCompleter?.complete();
+            }
+          }
+        },
+        onDone: () {
+          print('[WssReceiver] WebSocket stream closed by server.');
+          if (!transcription.isCompleted) {
+            transcription.complete(null); // Keine Antwort erhalten
+          }
+          if (_streamingCompleter != null &&
+              !_streamingCompleter!.isCompleted) {
+            _streamingCompleter?.complete();
+          }
+        },
+        onError: (error) {
+          print('[WssReceiver] WebSocket error: $error');
+          ErrorNotifier().showError('Server connection Error:\n$error');
+          if (!transcription.isCompleted) {
+            transcription.completeError(error);
+          }
+          _streamingCompleter?.completeError(error);
+          _channel.sink.close(status.protocolError);
+        },
+      );
 
       // Audio-Daten streamen
       audioStream.listen(
@@ -71,9 +108,8 @@ class WssHelper {
           print(
               '[WssHelper] Audio stream completed. Sending stop audio message.');
           sendMessage(jsonEncode(endMsg));
-          _channel.sink.close(status.normalClosure);
-          print(
-              '[WssHelper] WebSocket connection closed after audio streaming.');
+          //_channel.sink.close(status.normalClosure);
+          //print('[WssHelper] WebSocket connection closed after audio streaming.');
         },
         onError: (error) {
           print('[WssHelper] Error during audio streaming: $error');
@@ -84,11 +120,26 @@ class WssHelper {
       // Warten bis der Stream abgeschlossen ist
       //await subscription.asFuture();
       print('[WssHelper] Audio stream subscription completed.');
+      final resultTranscription = await transcription.future;
+      print(
+          '[WssReceiver] Transcription Result from Backend: $resultTranscription');
+      _channel.sink.close(status.normalClosure);
+      print('[WssHelper] Transcription received, closing Socket.');
     } catch (e) {
       print('[WssHelper] WebSocket error during audio streaming: $e');
       _channel.sink.close(status.goingAway);
+    } finally {
+      if (_streamingCompleter != null && !_streamingCompleter!.isCompleted) {
+        _streamingCompleter?.complete();
+      }
     }
     return true;
+  }
+
+  Future<void> waitForStreamToFinish() async {
+    if (_streamingCompleter != null) {
+      await _streamingCompleter!.future;
+    }
   }
 
   void closeConnection() {

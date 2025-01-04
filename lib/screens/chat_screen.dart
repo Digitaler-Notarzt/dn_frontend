@@ -32,23 +32,27 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _toggleRecording() async {
+    setState(() {
+      _isRecording = !_isRecording; // Optimistisch den Zustand ändern
+      if (_isRecording) {
+        startTime = DateTime.now().millisecondsSinceEpoch;
+      }
+    });
     await _microphoneHelper.toggleStreaming();
     if (!_microphoneHelper.isStreaming) {
       int duration = DateTime.now().millisecondsSinceEpoch - startTime;
-      //sets audio path to default value. No real path!
-      if(_microphoneHelper.lastStreamSuccess){
-      _sendAudioMessage('audioPathEx', duration);
-      }else{
+      if (_microphoneHelper.lastStreamSuccess) {
+        _sendAudioMessage('audioPathEx', duration);
+      } else {
         _sendFailMessage();
       }
-
-      // } else {
-      //   _sendAudioMessage(_microphoneHelper.recordingPath!, duration);
-      // }
     }
+
     setState(() {
       _isRecording = _microphoneHelper.isStreaming;
-      startTime = DateTime.timestamp().millisecondsSinceEpoch;
+      if (_isRecording) {
+        startTime = DateTime.now().millisecondsSinceEpoch;
+      }
     });
   }
 
@@ -71,7 +75,8 @@ class _ChatScreenState extends State<ChatScreen> {
       _scrollToBottom();
     });
 
-    messages.add(Message(text: const Text('Nachricht erhalten'), isUserMessage: false));
+    messages.add(
+        Message(text: const Text('Nachricht erhalten'), isUserMessage: false));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
@@ -81,8 +86,12 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_controller.text.trim().isNotEmpty) {
       // Nachricht senden und das UI aktualisieren
       setState(() {
-        messages
-            .add(Message(text: Text(_controller.text.trim(), style: const TextStyle(color: Colors.white),), isUserMessage: true));
+        messages.add(Message(
+            text: Text(
+              _controller.text.trim(),
+              style: const TextStyle(color: Colors.white),
+            ),
+            isUserMessage: true));
         _controller.clear();
         _scrollToBottom();
       });
@@ -91,8 +100,8 @@ class _ChatScreenState extends State<ChatScreen> {
         // Verzögerte Antwort im Web
         Future.delayed(const Duration(seconds: 2), () {
           setState(() {
-            messages
-                .add(Message(text: const Text('Nachricht erhalten'), isUserMessage: false));
+            messages.add(Message(
+                text: const Text('Nachricht erhalten'), isUserMessage: false));
             _scrollToBottom(); // Scroll nach dem Empfang der Antwort
           });
         });
@@ -100,8 +109,8 @@ class _ChatScreenState extends State<ChatScreen> {
         // Verzögerte Antwort auf mobilen Geräten
         Future.delayed(const Duration(seconds: 2), () {
           setState(() {
-            messages
-                .add(Message(text: const Text('Nachricht erhalten'), isUserMessage: false));
+            messages.add(Message(
+                text: const Text('Nachricht erhalten'), isUserMessage: false));
             _scrollToBottom(); // Scroll nach dem Empfang der Antwort
           });
         });
@@ -115,7 +124,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendFailMessage() {
-    messages.add(Message(isUserMessage: true, text: const Text("Nachricht konnte nicht versendet werden", style: TextStyle(color: Colors.red),)));
+    messages.add(Message(
+        isUserMessage: true,
+        text: const Text(
+          "Nachricht konnte nicht versendet werden",
+          style: TextStyle(color: Colors.red),
+        )));
   }
 
   void _dismissKeyboard() {
@@ -188,15 +202,17 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(height: 4),
             Container(
-              constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.65),
-              decoration: BoxDecoration(
-                color: message.isUserMessage ? Colors.grey[400] : Colors.redAccent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-              child: message.text!
-            ),
+                constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.65),
+                decoration: BoxDecoration(
+                  color: message.isUserMessage
+                      ? Colors.grey[400]
+                      : Colors.redAccent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                child: message.text!),
           ],
         ),
       ),
@@ -225,7 +241,8 @@ class _ChatScreenState extends State<ChatScreen> {
               constraints: BoxConstraints(
                   maxWidth: MediaQuery.of(context).size.width * 0.65),
               decoration: BoxDecoration(
-                color: message.isUserMessage ? Colors.grey[400] : Colors.redAccent,
+                color:
+                    message.isUserMessage ? Colors.grey[400] : Colors.redAccent,
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 10),

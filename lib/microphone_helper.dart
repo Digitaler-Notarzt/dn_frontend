@@ -13,9 +13,11 @@ class MicrophoneHelper {
 
   Future<void> stopStreaming() async {
     if (!isStreaming) return;
-
     await streamer.stop();
     _audioStreamSubscription = const Stream.empty();
+    await _wssHelper.waitForStreamToFinish();
+    print('Running Stream, waiting for it to end...');
+   
     //_wssHelper.closeConnection();
     isStreaming = false;
     print("Streaming stopped");
@@ -32,6 +34,7 @@ class MicrophoneHelper {
       print("Microphone permission denied");
       return;
     }
+    isStreaming = true;
 
     _audioStreamSubscription = await streamer.startStream(
       const RecordConfig(
@@ -49,7 +52,6 @@ class MicrophoneHelper {
       bool con = await _wssHelper.initialize(
           'ws://10.0.0.112:8000/audio-stream?token=');
       if (con) {
-        isStreaming = true;
         lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription);
       } else {
         lastStreamSuccess = false;
