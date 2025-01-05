@@ -1,18 +1,25 @@
 import 'dart:convert';
 
+import 'package:digitaler_notarzt/error_helper.dart';
+import 'package:digitaler_notarzt/wss_helper.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MicrophoneHelper {
   final AudioRecorder streamer = AudioRecorder();
+  final WssHelper _wssHelper = WssHelper();
   bool isStreaming = false;
+  late bool lastStreamSuccess = false;
   late Stream<List<int>> _audioStreamSubscription;
 
   Future<void> stopStreaming() async {
     if (!isStreaming) return;
-
     await streamer.stop();
     _audioStreamSubscription = const Stream.empty();
+    await _wssHelper.waitForStreamToFinish();
+    print('Running Stream, waiting for it to end...');
+   
+    //_wssHelper.closeConnection();
     isStreaming = false;
     print("Streaming stopped");
   }
@@ -26,8 +33,10 @@ class MicrophoneHelper {
     final hasPermission = await streamer.hasPermission();
     if (!hasPermission) {
       print("Microphone permission denied");
+      ErrorNotifier().showError("Mikrofon Zugriff verweigert.");
       return;
     }
+    isStreaming = true;
 
     _audioStreamSubscription = await streamer.startStream(
       const RecordConfig(
@@ -39,10 +48,20 @@ class MicrophoneHelper {
         //noiseSuppress: true,
       ),
     );
-    isStreaming = true;
 
     try {
-      await stream('ws://192.168.27.122:8000/audio-stream');
+      //await stream('ws://10.0.0.112:8000/audio-stream?token=');
+      bool con = await _wssHelper.initialize(
+          'ws://10.0.0.112:8000/audio-stream?token=');
+      if (con) {
+        lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription);
+      } else {
+        lastStreamSuccess = false;
+        streamer.stop();
+        isStreaming = false;
+        throw Exception("Backend not reachable");
+      }
+      //isStreaming = true;
     } catch (e) {
       print("Error while streaming: $e");
     }
@@ -62,6 +81,7 @@ class MicrophoneHelper {
 
   Future<void> stream(String backendUrl) async {
     final channel = WebSocketChannel.connect(Uri.parse(backendUrl));
+    await channel.ready.timeout(const Duration(seconds: 5));
     const startmsg = {'type': 'start_audio'};
     const endmsg = {'type': 'stop_audio'};
 
