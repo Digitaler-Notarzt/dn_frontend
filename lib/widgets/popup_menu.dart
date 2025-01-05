@@ -1,12 +1,14 @@
+import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class PopupMenu extends StatelessWidget {
   final void Function() dismissKeyboard;
 
   const PopupMenu({Key? key, required this.dismissKeyboard}) : super(key: key);
 
-  void _onMenuSelected(BuildContext context, String result) {
-    switch(result) {
+  void _onMenuSelected(BuildContext context, String result) async {
+    switch (result) {
       case 'settings':
         Navigator.pushNamed(context, '/settings');
         break;
@@ -14,7 +16,13 @@ class PopupMenu extends StatelessWidget {
         Navigator.pushNamed(context, '/profile');
         break;
       case 'logout':
-        print('User pressed logout');
+        print('clicked logout');
+        final authHelper =
+            Provider.of<AuthenticationHelper>(context, listen: false);
+        await authHelper.logout();
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(context, '/');
+        }
         break;
       default:
         throw UnimplementedError();
