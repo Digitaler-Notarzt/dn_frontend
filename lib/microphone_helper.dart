@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:digitaler_notarzt/wss_helper.dart';
 import 'package:record/record.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -32,6 +33,7 @@ class MicrophoneHelper {
     final hasPermission = await streamer.hasPermission();
     if (!hasPermission) {
       print("Microphone permission denied");
+      ErrorNotifier().showError("Mikrofon Zugriff verweigert.");
       return;
     }
     isStreaming = true;
@@ -55,6 +57,8 @@ class MicrophoneHelper {
         lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription);
       } else {
         lastStreamSuccess = false;
+        streamer.stop();
+        isStreaming = false;
         throw Exception("Backend not reachable");
       }
       //isStreaming = true;

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
@@ -8,7 +7,7 @@ import 'package:web_socket_channel/status.dart' as status;
 class WssHelper {
   late WebSocketChannel _channel;
   String jwt =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM2MDIzOTU1fQ.Jy9ERWwRWpKdekW_DFyoNZ_rMtI1F_ceCFXDGlZxfik";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM2MDk4OTg1fQ.TyvTMHnXVreTsQE_lTS6xj1Ck6_JvVOm3AMsD3E-pK8";
   Completer<void>? _streamingCompleter;
 
   Future<bool> initialize(String backendUrl) async {
