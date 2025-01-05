@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthenticationHelper {
-  final _storage = const FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage();
   final String baseUrl = 'http://10.0.0.112:8000';
 
   ///Login Funktion
@@ -55,5 +55,14 @@ class AuthenticationHelper {
 
   Future<void> logout() async {
     await _storage.deleteAll();
+  }
+
+  static Future<String> getToken() async {
+    String? token = await _storage.read(key: 'jwt_token');
+    if(token != null) {
+      return token;
+    } else {
+      return '';
+    }
   }
 }

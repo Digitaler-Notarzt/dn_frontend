@@ -1,19 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
 class WssHelper {
   late WebSocketChannel _channel;
-  String jwt =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM2MDk4OTg1fQ.TyvTMHnXVreTsQE_lTS6xj1Ck6_JvVOm3AMsD3E-pK8";
   Completer<void>? _streamingCompleter;
 
   Future<bool> initialize(String backendUrl) async {
     print('[WssHelper] Initializing WebSocket connection to $backendUrl');
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(backendUrl + jwt));
+      String storageJwt = await AuthenticationHelper.getToken();
+      if (storageJwt.isEmpty) {
+        throw Exception("JWT Token empty");
+      }
+      _channel = WebSocketChannel.connect(Uri.parse(backendUrl + storageJwt));
       await _channel.ready.timeout(const Duration(seconds: 5));
       if (_channel.closeCode == null) {
         return true;
