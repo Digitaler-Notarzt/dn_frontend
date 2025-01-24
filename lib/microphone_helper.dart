@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:digitaler_notarzt/wss_helper.dart';
 import 'package:record/record.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MicrophoneHelper {
   final AudioRecorder streamer = AudioRecorder();
@@ -11,6 +8,7 @@ class MicrophoneHelper {
   bool isStreaming = false;
   late bool lastStreamSuccess = false;
   late Stream<List<int>> _audioStreamSubscription;
+  late String lastTranscription;
 
   Future<void> stopStreaming() async {
     if (!isStreaming) return;
@@ -42,7 +40,8 @@ class MicrophoneHelper {
       const RecordConfig(
         encoder: AudioEncoder.pcm16bits,
         numChannels: 1,
-        sampleRate: 44100,
+        //sampleRate: 44100,
+        sampleRate: 16000,
         //bitRate: 128000,
         //echoCancel: true,
         //noiseSuppress: true,
@@ -52,9 +51,9 @@ class MicrophoneHelper {
     try {
       //await stream('ws://10.0.0.112:8000/audio-stream?token=');
       bool con = await _wssHelper.initialize(
-          'ws://10.0.0.112:8000/audio-stream?token=');
+          'ws://10.0.104.107:8000/audio-stream?token=');
       if (con) {
-        lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription);
+        lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription).whenComplete(() => lastTranscription = _wssHelper.lastTranscription);
       } else {
         lastStreamSuccess = false;
         streamer.stop();
@@ -79,7 +78,7 @@ class MicrophoneHelper {
   //https://pub.dev/packages/web_socket_channel
   //https://docs.flutter.dev/data-and-backend/serialization/json
 
-  Future<void> stream(String backendUrl) async {
+  /*Future<void> stream(String backendUrl) async {
     final channel = WebSocketChannel.connect(Uri.parse(backendUrl));
     await channel.ready.timeout(const Duration(seconds: 5));
     const startmsg = {'type': 'start_audio'};
@@ -113,5 +112,5 @@ class MicrophoneHelper {
     } catch (e) {
       print('WebSocket-Fehler: $e');
     }
-  }
+  }*/
 }

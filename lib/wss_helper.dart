@@ -8,6 +8,7 @@ import 'package:web_socket_channel/status.dart' as status;
 class WssHelper {
   late WebSocketChannel _channel;
   Completer<void>? _streamingCompleter;
+  String lastTranscription = "";
 
   Future<bool> initialize(String backendUrl) async {
     print('[WssHelper] Initializing WebSocket connection to $backendUrl');
@@ -126,6 +127,16 @@ class WssHelper {
       print(
           '[WssReceiver] Transcription Result from Backend: $resultTranscription');
       _channel.sink.close(status.normalClosure);
+      RegExp regex = RegExp(r'Transcription:\s*(.*?)\s*LLM Response:');
+      Match? match = regex.firstMatch(resultTranscription!);
+      if (match != null) {
+        // Extrahierten Text auslesen
+        String transcription = match.group(1) ?? '';
+        print('Extrahierte Transcription: $transcription');
+        lastTranscription = transcription;
+      } else {
+        print('Kein gültiger Text gefunden.');
+      }
       print('[WssHelper] Transcription received, closing Socket.');
     } catch (e) {
       print('[WssHelper] WebSocket error during audio streaming: $e');

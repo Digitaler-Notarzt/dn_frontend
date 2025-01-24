@@ -32,27 +32,37 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _toggleRecording() async {
+    // Optimistisch den Zustand ändern
     setState(() {
-      _isRecording = !_isRecording; // Optimistisch den Zustand ändern
-      if (_isRecording) {
-        startTime = DateTime.now().millisecondsSinceEpoch;
-      }
+      _isRecording = !_isRecording;
     });
+
+    // Streaming starten/stoppen
     await _microphoneHelper.toggleStreaming();
-    if (!_microphoneHelper.isStreaming) {
-      int duration = DateTime.now().millisecondsSinceEpoch - startTime;
-      if (_microphoneHelper.lastStreamSuccess) {
-        _sendAudioMessage('audioPathEx', duration);
+
+    if (_microphoneHelper.isStreaming) {
+      // Setze startTime erst jetzt, wenn die Aufnahme wirklich gestartet ist
+      setState(() {
+        startTime = DateTime.now().millisecondsSinceEpoch;
+      });
+    } else {
+      // Dauer berechnen, wenn der Stream gestoppt wurde
+      if (startTime != null) {
+        int duration = DateTime.now().millisecondsSinceEpoch - startTime;
+
+        if (_microphoneHelper.lastStreamSuccess) {
+          _sendAudioMessage('audioPathEx', duration);
+        } else {
+          _sendFailMessage();
+        }
       } else {
-        _sendFailMessage();
+        print('Warnung: startTime ist null.');
       }
     }
 
+    // Setze Zustand basierend auf tatsächlichem Status
     setState(() {
       _isRecording = _microphoneHelper.isStreaming;
-      if (_isRecording) {
-        startTime = DateTime.now().millisecondsSinceEpoch;
-      }
     });
   }
 
@@ -75,8 +85,9 @@ class _ChatScreenState extends State<ChatScreen> {
       _scrollToBottom();
     });
 
-    messages.add(
-        Message(text: const Text('Nachricht erhalten'), isUserMessage: false));
+    messages.add(Message(
+        text: Text('Transkription: ${_microphoneHelper.lastTranscription}'),
+        isUserMessage: false));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
     });
