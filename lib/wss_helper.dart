@@ -127,12 +127,12 @@ class WssHelper {
       print(
           '[WssReceiver] Transcription Result from Backend: $resultTranscription');
       _channel.sink.close(status.normalClosure);
-      RegExp regex = RegExp(r'Transcription:\s*(.*?)\s*LLM Response:');
+      RegExp regex = RegExp(r"'content':\s*'([^']*)'");
       Match? match = regex.firstMatch(resultTranscription!);
       if (match != null) {
         // Extrahierten Text auslesen
         String transcription = match.group(1) ?? '';
-        print('Extrahierte Transcription: $transcription');
+        print('Extrahierte LLM Response: $transcription');
         lastTranscription = transcription;
       } else {
         print('Kein gültiger Text gefunden.');

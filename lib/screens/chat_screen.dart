@@ -86,7 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
 
     messages.add(Message(
-        text: Text('Transkription: ${_microphoneHelper.lastTranscription}'),
+        text: Text(_microphoneHelper.lastTranscription),
         isUserMessage: false));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
