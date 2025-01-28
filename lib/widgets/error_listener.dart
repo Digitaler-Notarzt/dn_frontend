@@ -4,7 +4,7 @@ import 'package:digitaler_notarzt/error_helper.dart';
 class ErrorListener extends StatelessWidget {
   final Widget child;
 
-  ErrorListener({required this.child});
+  const ErrorListener({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

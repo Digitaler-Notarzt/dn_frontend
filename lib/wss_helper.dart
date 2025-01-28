@@ -1,19 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as status;
 
 class WssHelper {
   late WebSocketChannel _channel;
-  String jwt =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzM2MDk4OTg1fQ.TyvTMHnXVreTsQE_lTS6xj1Ck6_JvVOm3AMsD3E-pK8";
   Completer<void>? _streamingCompleter;
+  String lastTranscription = "";
 
   Future<bool> initialize(String backendUrl) async {
     print('[WssHelper] Initializing WebSocket connection to $backendUrl');
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(backendUrl + jwt));
+      String storageJwt = await AuthenticationHelper.getToken();
+      if (storageJwt.isEmpty) {
+        throw Exception("JWT Token empty");
+      }
+      _channel = WebSocketChannel.connect(Uri.parse(backendUrl + storageJwt));
       await _channel.ready.timeout(const Duration(seconds: 5));
       if (_channel.closeCode == null) {
         return true;
@@ -123,6 +127,22 @@ class WssHelper {
       print(
           '[WssReceiver] Transcription Result from Backend: $resultTranscription');
       _channel.sink.close(status.normalClosure);
+      if (resultTranscription != null) {
+        String transcription = resultTranscription
+            .substring(resultTranscription.indexOf('LLM Response:') + 13);
+        lastTranscription = transcription;
+      }
+      /*RegExp regex = RegExp(r"'content':\s*'([^']*)'");
+      //RegExp regex = RegExp(r'^\s*LLM Response:\s*(.*)$');
+      Match? match = regex.firstMatch(resultTranscription!);
+      if (match != null) {
+        // Extrahierten Text auslesen
+        String transcription = match.group(1) ?? '';
+        print('Extrahierte LLM Response: $transcription');
+        lastTranscription = transcription;
+      } else {
+        print('Kein gültiger Text gefunden.');
+      }*/
       print('[WssHelper] Transcription received, closing Socket.');
     } catch (e) {
       print('[WssHelper] WebSocket error during audio streaming: $e');
