@@ -13,7 +13,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  List<Message> messages = [];
+  List<ChatMessage> messages = [];
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
@@ -41,13 +41,12 @@ class _ChatScreenState extends State<ChatScreen> {
     await _microphoneHelper.toggleStreaming();
 
     if (_microphoneHelper.isStreaming) {
-      // Setze startTime erst jetzt, wenn die Aufnahme wirklich gestartet ist
       setState(() {
         startTime = DateTime.now().millisecondsSinceEpoch;
       });
     } else {
       // Dauer berechnen, wenn der Stream gestoppt wurde
-      if (startTime != null) {
+      if (startTime != 0) {
         int duration = DateTime.now().millisecondsSinceEpoch - startTime;
 
         if (_microphoneHelper.lastStreamSuccess) {
@@ -78,14 +77,16 @@ class _ChatScreenState extends State<ChatScreen> {
     String formattedDuration = _formatDuration(duration);
 
     setState(() {
-      messages.add(Message(
-          audioFilePath: audioFilePath,
+      messages.add(AudioMessage(
+          id: UniqueKey().toString(),
+          status: "sent",
           audioDuration: formattedDuration,
           isUserMessage: true));
       _scrollToBottom();
     });
 
-    messages.add(Message(
+    messages.add(TextMessage(
+        id: UniqueKey().toString(),
         text: Text(_microphoneHelper.lastTranscription),
         isUserMessage: false));
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -97,7 +98,8 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_controller.text.trim().isNotEmpty) {
       // Nachricht senden und das UI aktualisieren
       setState(() {
-        messages.add(Message(
+        messages.add(TextMessage(
+            id: UniqueKey().toString(),
             text: Text(
               _controller.text.trim(),
               style: const TextStyle(color: Colors.white),
@@ -111,7 +113,8 @@ class _ChatScreenState extends State<ChatScreen> {
         // Verzögerte Antwort im Web
         Future.delayed(const Duration(seconds: 2), () {
           setState(() {
-            messages.add(Message(
+            messages.add(TextMessage(
+              id: UniqueKey().toString(),
                 text: const Text('Nachricht erhalten'), isUserMessage: false));
             _scrollToBottom(); // Scroll nach dem Empfang der Antwort
           });
@@ -120,7 +123,8 @@ class _ChatScreenState extends State<ChatScreen> {
         // Verzögerte Antwort auf mobilen Geräten
         Future.delayed(const Duration(seconds: 2), () {
           setState(() {
-            messages.add(Message(
+            messages.add(TextMessage(
+              id: UniqueKey().toString(),
                 text: const Text('Nachricht erhalten'), isUserMessage: false));
             _scrollToBottom(); // Scroll nach dem Empfang der Antwort
           });
@@ -135,7 +139,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _sendFailMessage() {
-    messages.add(Message(
+    messages.add(TextMessage(
+      id: UniqueKey().toString(),
         isUserMessage: true,
         text: const Text(
           "Nachricht konnte nicht versendet werden",
@@ -178,10 +183,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final message = messages[index];
-                        if (message.isAudioMessage) {
-                          return _buildAudioMessageBubble(message);
+                        if (message is AudioMessage) {
+                          return _buildAudioMessageBubble(message as AudioMessage);
                         } else {
-                          return _buildTextMessageBubble(message);
+                          return _buildTextMessageBubble(message as TextMessage);
                         }
                       },
                     ),
@@ -194,7 +199,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ));
   }
 
-  Widget _buildTextMessageBubble(Message message) {
+  Widget _buildTextMessageBubble(TextMessage message) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Align(
@@ -230,7 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildAudioMessageBubble(Message message) {
+  Widget _buildAudioMessageBubble(AudioMessage message) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Align(
@@ -238,9 +243,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ? Alignment.centerRight
             : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: message.isAudioMessage
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               message.isUserMessage ? 'Ich' : 'Digitaler Notarzt',
