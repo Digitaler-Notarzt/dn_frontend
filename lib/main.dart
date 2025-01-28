@@ -1,4 +1,6 @@
 import 'package:digitaler_notarzt/authentication_helper.dart';
+import 'package:digitaler_notarzt/microphone_helper.dart';
+import 'package:digitaler_notarzt/notifier/stream_notifier.dart';
 import 'package:digitaler_notarzt/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,11 +10,15 @@ import 'screens/profile_screen.dart';
 
 void main() {
   //runApp(const MyApp());
+  final microphonehelper = MicrophoneHelper();
   runApp(
     MultiProvider(
       providers: [
         Provider<AuthenticationHelper>(
           create: (_) => AuthenticationHelper(),
+        ),
+        Provider<StreamNotifier>(
+          create: (_) => StreamNotifier(microphoneHelper: microphonehelper),
         )
       ],
       child: const MyApp(),

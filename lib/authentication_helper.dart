@@ -6,7 +6,7 @@ import 'dart:convert';
 
 class AuthenticationHelper {
   static const _storage = FlutterSecureStorage();
-  final String baseUrl = 'http://10.0.104.107:8000';
+  final String baseUrl = 'http://10.0.0.112:8000';
 
   ///Login Funktion
   Future<bool> login(String username, String password) async {
