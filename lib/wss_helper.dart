@@ -113,6 +113,12 @@ class WssHelper {
           sendMessage(jsonEncode(endMsg));
           //_channel.sink.close(status.normalClosure);
           //print('[WssHelper] WebSocket connection closed after audio streaming.');
+
+          //DEMO ONLY
+          /*Future.delayed(const Duration(seconds: 2), () {
+            transcription.complete("Audio stream stopped. Transcription: Hallo, ich heisse. LLM Response: Ich verstehe, dies könnte auf einen Schlaganfall hindeuten. Kann Ihr Patient sprechen? Aktuelle Wahrscheinlichkeit: 5% Aktueller Schweregrad: 2/10");
+            _streamingCompleter?.complete();
+          });*/
         },
         onError: (error) {
           print('[WssHelper] Error during audio streaming: $error');
