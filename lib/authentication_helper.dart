@@ -1,12 +1,26 @@
 import 'dart:async';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class AuthenticationHelper {
   static const _storage = FlutterSecureStorage();
-  final String baseUrl = 'http://10.0.0.112:8000';
+  final String baseUrl = 'https://stuppnig.ddns.net';
+
+  /*Future<http.Client> createHttpClient() async {
+    if (kIsWeb || Platform.isWindows) {
+      print("Sicherheitswarnung: Self-Signed Zertifikate werden nicht geprüft!");
+      return http.Client();
+    }
+
+    final sslCert = await rootBundle.loadString('assets/cert/server.pem');
+
+    SecurityContext securityContext = SecurityContext.defaultContext;
+    securityContext.setTrustedCertificatesBytes(sslCert.codeUnits);
+
+    HttpClient client = HttpClient(context: securityContext);
+    return IOClient(client);
+  }*/
 
   ///Login Funktion
   Future<bool> login(String username, String password) async {
@@ -20,9 +34,10 @@ class AuthenticationHelper {
         'client_id': 'string',
         'client_secret': 'string',
       };
+      //http.Client client = await createHttpClient();
       final response = await http
           .post(
-            Uri.parse('$baseUrl/auth/login'),
+            Uri.parse('$baseUrl/user/login'),
             headers: {
               'accept': 'application/json',
               'Content-Type': 'application/x-www-form-urlencoded',
@@ -59,7 +74,7 @@ class AuthenticationHelper {
 
   static Future<String> getToken() async {
     String? token = await _storage.read(key: 'jwt_token');
-    if(token != null) {
+    if (token != null) {
       return token;
     } else {
       return '';

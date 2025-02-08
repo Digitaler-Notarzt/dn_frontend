@@ -28,6 +28,10 @@ class LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    /*if(isOrganization) {
+
+    }*/
+
     bool success = await _authHelper.login(username, password);
 
     if (success) {
@@ -55,7 +59,12 @@ class LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
-              Tab(child: Text("Organisations Login", style: TextStyle(color: Colors.white),)),
+              Tab(
+                child: Text(
+                  "Organisations Login",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
             ],
           ),
         ),
@@ -162,8 +171,7 @@ class LoginScreenState extends State<LoginScreen> {
                       ),
                       backgroundColor: Theme.of(context).indicatorColor,
                     ),
-                    child: const Text('Login',
-                        style: const TextStyle(fontSize: 16)),
+                    child: const Text('Login', style: TextStyle(fontSize: 16)),
                   ),
                 ],
               ),

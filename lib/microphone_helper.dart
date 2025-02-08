@@ -51,7 +51,7 @@ class MicrophoneHelper {
     try {
       //await stream('ws://10.0.0.112:8000/audio-stream?token=');
       bool con = await _wssHelper.initialize(
-          'ws://10.0.0.112:8000/audio-stream?token=');
+          'wss://stuppnig.ddns.net:443/user/audio-stream?token=');
       if (con) {
         lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription).whenComplete(() => lastTranscription = _wssHelper.lastTranscription);
       } else {
