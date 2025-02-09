@@ -13,7 +13,7 @@ class WssHelper {
   Future<bool> initialize(String backendUrl) async {
     print('[WssHelper] Initializing WebSocket connection to $backendUrl');
     try {
-      String storageJwt = await AuthenticationHelper.getToken();
+      String storageJwt = await AuthenticationHelper.getToken(false);
       if (storageJwt.isEmpty) {
         throw Exception("JWT Token empty");
       }

@@ -19,21 +19,26 @@ class LoginScreenState extends State<LoginScreen> {
   Future<void> _login({required bool isOrganization}) async {
     final username = _usernameController.text;
     final password = _passwordController.text;
-    final authHelper = Provider.of<AuthenticationHelper>(context, listen: false);
-
+    final authHelper =
+        Provider.of<AuthenticationHelper>(context, listen: false);
+    bool success = false;
     if (username.isEmpty || password.isEmpty) {
       ErrorNotifier().showError("Bitte alle Felder ausfüllen.");
       return;
     }
 
-    /*if(isOrganization) {
-
-    }*/
-
-    bool success = await authHelper.login(username, password);
+    if (isOrganization) {
+      success = await authHelper.organizationLogin(username, password);
+    } else {
+      success = await authHelper.userLogin(username, password);
+    }
 
     if (success) {
-      context.go('/chat');
+      if (isOrganization) {
+        context.go('/organization');
+      } else {
+        context.go('/chat');
+      }
     } else {
       ErrorNotifier().showError(
           'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Eingabe.');

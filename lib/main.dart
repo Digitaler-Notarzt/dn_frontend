@@ -2,6 +2,7 @@ import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';
 import 'package:digitaler_notarzt/notifier/stream_notifier.dart';
 import 'package:digitaler_notarzt/screens/login_screen.dart';
+import 'package:digitaler_notarzt/screens/organization_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -52,10 +53,13 @@ class MyApp extends StatelessWidget {
 
   GoRouter _createRouter(BuildContext context) {
     return GoRouter(
-      refreshListenable: Provider.of<AuthenticationHelper>(context, listen: true),
+      refreshListenable:
+          Provider.of<AuthenticationHelper>(context, listen: true),
       redirect: (context, state) {
-        final authHelper = Provider.of<AuthenticationHelper>(context, listen: false);
+        final authHelper =
+            Provider.of<AuthenticationHelper>(context, listen: false);
         final isLoggedIn = authHelper.isAuthenticated;
+        final isOrganization = authHelper.isOrganization;
 
         final goingToLogin = state.matchedLocation == '/';
 
@@ -63,7 +67,11 @@ class MyApp extends StatelessWidget {
           return '/';
         }
         if (isLoggedIn && goingToLogin) {
-          return '/chat';
+          if (isOrganization) {
+            return '/organization';
+          } else {
+            return '/chat';
+          }
         }
         return null;
       },
@@ -75,6 +83,10 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/chat',
           builder: (context, state) => const ChatScreen(),
+        ),
+        GoRoute(
+          path: '/organization',
+          builder: (context, state) => OrganizationScreen(),
         ),
         GoRoute(
           path: '/settings',
