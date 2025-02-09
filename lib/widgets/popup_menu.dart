@@ -1,5 +1,6 @@
 import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class PopupMenu extends StatelessWidget {
@@ -10,10 +11,10 @@ class PopupMenu extends StatelessWidget {
   void _onMenuSelected(BuildContext context, String result) async {
     switch (result) {
       case 'settings':
-        Navigator.pushNamed(context, '/settings');
+        context.go('/settings');
         break;
       case 'profile':
-        Navigator.pushNamed(context, '/profile');
+        context.go('/profile');
         break;
       case 'logout':
         print('clicked logout');
@@ -21,7 +22,7 @@ class PopupMenu extends StatelessWidget {
             Provider.of<AuthenticationHelper>(context, listen: false);
         await authHelper.logout();
         if (context.mounted) {
-          Navigator.pushReplacementNamed(context, '/');
+          context.go('/');
         }
         break;
       default:

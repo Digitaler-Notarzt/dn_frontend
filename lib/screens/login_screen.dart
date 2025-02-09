@@ -2,6 +2,8 @@ import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:digitaler_notarzt/widgets/error_listener.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,17 +15,13 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _orgNameController = TextEditingController();
-  final AuthenticationHelper _authHelper = AuthenticationHelper();
 
   Future<void> _login({required bool isOrganization}) async {
     final username = _usernameController.text;
     final password = _passwordController.text;
-    final orgName = _orgNameController.text;
+    final authHelper = Provider.of<AuthenticationHelper>(context, listen: false);
 
-    if (username.isEmpty ||
-        password.isEmpty ||
-        (isOrganization && orgName.isEmpty)) {
+    if (username.isEmpty || password.isEmpty) {
       ErrorNotifier().showError("Bitte alle Felder ausfüllen.");
       return;
     }
@@ -32,10 +30,10 @@ class LoginScreenState extends State<LoginScreen> {
 
     }*/
 
-    bool success = await _authHelper.login(username, password);
+    bool success = await authHelper.login(username, password);
 
     if (success) {
-      Navigator.pushReplacementNamed(context, '/chat');
+      context.go('/chat');
     } else {
       ErrorNotifier().showError(
           'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Eingabe.');
@@ -119,21 +117,6 @@ class LoginScreenState extends State<LoginScreen> {
               ),
               child: Column(
                 children: [
-                  if (isOrganization) ...[
-                    TextField(
-                      controller: _orgNameController,
-                      decoration: InputDecoration(
-                        labelText: 'Organisationsname',
-                        prefixIcon: const Icon(Icons.business),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
                   TextField(
                     controller: _usernameController,
                     decoration: InputDecoration(

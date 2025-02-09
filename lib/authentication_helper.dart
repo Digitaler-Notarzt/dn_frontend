@@ -1,26 +1,28 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class AuthenticationHelper {
+class AuthenticationHelper extends ChangeNotifier{
   static const _storage = FlutterSecureStorage();
   final String baseUrl = 'https://stuppnig.ddns.net';
+  bool _isAuthenticated = false;
 
-  /*Future<http.Client> createHttpClient() async {
-    if (kIsWeb || Platform.isWindows) {
-      print("Sicherheitswarnung: Self-Signed Zertifikate werden nicht geprüft!");
-      return http.Client();
+  bool get isAuthenticated => _isAuthenticated;
+
+  AuthenticationHelper() {
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    String? token = await _storage.read(key: 'jwt_token');
+
+    if (token != null) {
+      _isAuthenticated = true;
+      notifyListeners();
     }
-
-    final sslCert = await rootBundle.loadString('assets/cert/server.pem');
-
-    SecurityContext securityContext = SecurityContext.defaultContext;
-    securityContext.setTrustedCertificatesBytes(sslCert.codeUnits);
-
-    HttpClient client = HttpClient(context: securityContext);
-    return IOClient(client);
-  }*/
+  } 
 
   ///Login Funktion
   Future<bool> login(String username, String password) async {
@@ -34,7 +36,7 @@ class AuthenticationHelper {
         'client_id': 'string',
         'client_secret': 'string',
       };
-      //http.Client client = await createHttpClient();
+
       final response = await http
           .post(
             Uri.parse('$baseUrl/user/login'),
@@ -53,6 +55,8 @@ class AuthenticationHelper {
         await _storage.write(key: 'username', value: username);
         await _storage.write(key: 'password', value: password);
         print('[Storage] Token: ${await _storage.read(key: 'jwt_token')}');
+        _isAuthenticated = true;
+        notifyListeners();
         return true;
       } else {
         print(
@@ -69,6 +73,8 @@ class AuthenticationHelper {
   }
 
   Future<void> logout() async {
+    _isAuthenticated = false;
+    notifyListeners();
     await _storage.deleteAll();
   }
 

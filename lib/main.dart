@@ -3,6 +3,7 @@ import 'package:digitaler_notarzt/microphone_helper.dart';
 import 'package:digitaler_notarzt/notifier/stream_notifier.dart';
 import 'package:digitaler_notarzt/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'screens/chat_screen.dart';
 import 'screens/settings_screen.dart';
@@ -14,7 +15,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        Provider<AuthenticationHelper>(
+        ChangeNotifierProvider<AuthenticationHelper>(
           create: (_) => AuthenticationHelper(),
         ),
         Provider<StreamNotifier>(
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Digitaler Notarzt',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -45,13 +46,45 @@ class MyApp extends StatelessWidget {
             elevation: 20,
             centerTitle: true),
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => LoginScreen(),
-        '/chat': (context) => const ChatScreen(),
-        '/settings': (context) => const SettingsScreen(),
-        '/profile': (context) => const ProfileScreen(),
+      routerConfig: _createRouter(context),
+    );
+  }
+
+  GoRouter _createRouter(BuildContext context) {
+    return GoRouter(
+      refreshListenable: Provider.of<AuthenticationHelper>(context, listen: true),
+      redirect: (context, state) {
+        final authHelper = Provider.of<AuthenticationHelper>(context, listen: false);
+        final isLoggedIn = authHelper.isAuthenticated;
+
+        final goingToLogin = state.matchedLocation == '/';
+
+        if (!isLoggedIn && !goingToLogin) {
+          return '/';
+        }
+        if (isLoggedIn && goingToLogin) {
+          return '/chat';
+        }
+        return null;
       },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: '/chat',
+          builder: (context, state) => const ChatScreen(),
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfileScreen(),
+        ),
+      ],
     );
   }
 }
