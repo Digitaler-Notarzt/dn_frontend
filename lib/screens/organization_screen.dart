@@ -1,3 +1,4 @@
+import 'package:digitaler_notarzt/organization_helper.dart';
 import 'package:flutter/material.dart';
 
 class OrganizationScreen extends StatefulWidget {
@@ -6,15 +7,18 @@ class OrganizationScreen extends StatefulWidget {
 }
 
 class _OrganizationScreenState extends State<OrganizationScreen> {
+  final OrganizationHelper organizationHelper = OrganizationHelper();
   final List<Map<String, dynamic>> _users = [
     {"email": "user1@example.com", "isActive": true},
     {"email": "user2@example.com", "isActive": false},
   ];
 
-  void _addUser(String email, String password) {
-    setState(() {
-      _users.add({"email": email, "isActive": true});
-    });
+  void _addUser(String email, String password) async {
+    if (await organizationHelper.addUser(email, password)) {
+      setState(() {
+        _users.add({"email": email, "isActive": true});
+      });
+    }
   }
 
   void _deleteUser(String email) {
@@ -80,7 +84,8 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+                if (emailController.text.isNotEmpty &&
+                    passwordController.text.isNotEmpty) {
                   _addUser(emailController.text, passwordController.text);
                   Navigator.pop(context);
                 }
@@ -127,8 +132,11 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
                         children: [
                           IconButton(
                             icon: Icon(
-                              user["isActive"] ? Icons.toggle_off : Icons.toggle_on,
-                              color: user["isActive"] ? Colors.red : Colors.green,
+                              user["isActive"]
+                                  ? Icons.toggle_off
+                                  : Icons.toggle_on,
+                              color:
+                                  user["isActive"] ? Colors.red : Colors.green,
                             ),
                             onPressed: () => _toggleUserStatus(user["email"]),
                           ),
