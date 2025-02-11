@@ -10,7 +10,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
   final OrganizationHelper organizationHelper = OrganizationHelper();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = true;
-  String _errorMessage = "";
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -19,6 +19,10 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
   }
 
   Future<void> _fetchUsers() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       final response = await organizationHelper.getUsers();
       setState(() {
@@ -52,18 +56,30 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
     setState(() {
       _isLoading = true;
     });
-    // if (await organizationHelper.deleteUser(email)) {
-    //   _fetchUsers();
-    // }
+    if (await organizationHelper.deleteUser(email)) {
+      _fetchUsers();
+    } else {
+      setState(() {
+        _errorMessage = "Fehler beim Laden der Benutzer";
+        _isLoading = false;
+      });
+    }
   }
 
   void _toggleUserStatus(String email, bool isActive) async {
-    // bool success = isActive
-    //     ? await organizationHelper.deactivateUser(email)
-    //     : await organizationHelper.activateUser(email);
-    // if (success) {
-    //   _fetchUsers();
-    // }
+    setState(() {
+      _isLoading = true;
+    });
+    bool success = isActive
+        ? await organizationHelper.deactivateUser(email)
+        : await organizationHelper.activateUser(email);
+    if (success) {
+      _fetchUsers();
+    } else {
+      setState(() {
+        _errorMessage = "Fehler bei User Aktivierung";
+      });
+    }
   }
 
   void _showAddUserDialog() {
@@ -139,57 +155,120 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            ElevatedButton.icon(
-              onPressed: _showAddUserDialog,
-              icon: const Icon(Icons.person_add),
-              label: const Text("Benutzer hinzufügen"),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _errorMessage.isNotEmpty
-                      ? Center(child: Text(_errorMessage))
-                      : ListView.builder(
-                          itemCount: _users.length,
-                          itemBuilder: (context, index) {
-                            final user = _users[index];
-                            return Card(
-                              elevation: 3,
-                              margin: const EdgeInsets.symmetric(vertical: 8),
-                              child: ListTile(
-                                title: Text(user["email"]),
-                                subtitle: Text(
-                                  user["isActive"] ? "Aktiv" : "Inaktiv",
+            /// Ladeindikator anzeigen, wenn API gerade lädt
+            if (_isLoading) ...[
+              const Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: const [
+                      CircularProgressIndicator(),
+                    ],
+                  ),
+                ),
+              ),
+            ]
+
+            /// Fehler anzeigen, aber UI bleibt bedienbar
+            else if (_errorMessage != null) ...[
+              Center(
+                child: Column(
+                  children: [
+                    Text(_errorMessage!, style: const TextStyle(fontSize: 16)),
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      onPressed: _fetchUsers,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text("Erneut versuchen"),
+                    ),
+                  ],
+                ),
+              ),
+            ]
+
+            /// Benutzerliste anzeigen
+            else ...[
+              ElevatedButton.icon(
+                onPressed: _showAddUserDialog,
+                icon: const Icon(Icons.person_add),
+                label: const Text("Benutzer hinzufügen"),
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _users.length,
+                  itemBuilder: (context, index) {
+                    final user = _users[index];
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        title: Text(user["email"]),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 5.0,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  user["isActive"]
+                                      ? Icons.done_outlined
+                                      : Icons.cancel_outlined,
+                                  color: user["isActive"]
+                                      ? Colors.green
+                                      : Colors.red,
                                 ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(
-                                        user["isActive"]
-                                            ? Icons.toggle_off
-                                            : Icons.toggle_on,
-                                        color: user["isActive"]
-                                            ? Colors.red
-                                            : Colors.green,
-                                      ),
-                                      onPressed: () => _toggleUserStatus(
-                                          user["email"], user["isActive"]),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.red),
-                                      onPressed: () =>
-                                          _deleteUser(user["email"]),
-                                    ),
-                                  ],
+                                const SizedBox(
+                                    width: 5), // Abstand zwischen Icon und Text
+                                Text(user["isActive"] ? "Aktiv" : "Inaktiv"),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  user["isVerified"]
+                                      ? Icons.verified
+                                      : Icons.error_outline,
+                                  color: user["isVerified"]
+                                      ? Colors.green
+                                      : Colors.grey,
                                 ),
-                              ),
-                            );
-                          },
+                                const SizedBox(width: 5),
+                                Text(user["isVerified"]
+                                    ? "Verifiziert"
+                                    : "Nicht verifiziert"),
+                              ],
+                            ),
+                          ],
                         ),
-            ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                user["isActive"]
+                                    ? Icons.toggle_on
+                                    : Icons.toggle_off,
+                                color: user["isActive"]
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                              onPressed: () => _toggleUserStatus(
+                                  user["email"], user["isActive"]),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteUser(user["email"]),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ],
         ),
       ),
