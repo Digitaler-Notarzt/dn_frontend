@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:digitaler_notarzt/authentication_helper.dart';
@@ -38,5 +39,28 @@ class OrganizationHelper {
       print('[Organization] Fehler: $e');
       return false;
     }
+  }
+
+  ///Method to receive all Users as a list
+  Future<List<dynamic>> getUsers() async {
+    final String authToken = await AuthenticationHelper.getToken(true);
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/organization/list-users'),
+        headers: {
+          'Authorization': 'Bearer $authToken',
+          HttpHeaders.acceptHeader: 'application/json',
+        }
+      ).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data["details"]["users"];
+      }
+    } on TimeoutException {
+      print("[Organization] Timeout");
+    } on Exception catch (e) {
+      print("[Organization] Error: $e");
+    }
+    throw Exception("Fehler beim Laden der Benutzer");
   }
 }

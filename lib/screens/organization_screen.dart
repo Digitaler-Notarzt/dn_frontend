@@ -8,33 +8,62 @@ class OrganizationScreen extends StatefulWidget {
 
 class _OrganizationScreenState extends State<OrganizationScreen> {
   final OrganizationHelper organizationHelper = OrganizationHelper();
-  final List<Map<String, dynamic>> _users = [
-    {"email": "user1@example.com", "isActive": true},
-    {"email": "user2@example.com", "isActive": false},
-  ];
+  List<Map<String, dynamic>> _users = [];
+  bool _isLoading = true;
+  String _errorMessage = "";
 
-  void _addUser(String email, String password) async {
-    if (await organizationHelper.addUser(email, password)) {
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsers();
+  }
+
+  Future<void> _fetchUsers() async {
+    try {
+      final response = await organizationHelper.getUsers();
       setState(() {
-        _users.add({"email": email, "isActive": true});
+        _users = response.map<Map<String, dynamic>>((user) {
+          return {
+            "email": user["email"],
+            "isActive": user["is_active"],
+            "isVerified": user["is_verified"],
+          };
+        }).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Fehler beim Laden der Benutzer";
+        _isLoading = false;
       });
     }
   }
 
-  void _deleteUser(String email) {
+  void _addUser(String email, String password) async {
     setState(() {
-      _users.removeWhere((user) => user["email"] == email);
+      _isLoading = true;
     });
+    if (await organizationHelper.addUser(email, password)) {
+      _fetchUsers();
+    }
   }
 
-  void _toggleUserStatus(String email) {
+  void _deleteUser(String email) async {
     setState(() {
-      for (var user in _users) {
-        if (user["email"] == email) {
-          user["isActive"] = !user["isActive"];
-        }
-      }
+      _isLoading = true;
     });
+    // if (await organizationHelper.deleteUser(email)) {
+    //   _fetchUsers();
+    // }
+  }
+
+  void _toggleUserStatus(String email, bool isActive) async {
+    // bool success = isActive
+    //     ? await organizationHelper.deactivateUser(email)
+    //     : await organizationHelper.activateUser(email);
+    // if (success) {
+    //   _fetchUsers();
+    // }
   }
 
   void _showAddUserDialog() {
@@ -117,39 +146,49 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: _users.length,
-                itemBuilder: (context, index) {
-                  final user = _users[index];
-                  return Card(
-                    elevation: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(user["email"]),
-                      subtitle: Text(user["isActive"] ? "Aktiv" : "Inaktiv"),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              user["isActive"]
-                                  ? Icons.toggle_off
-                                  : Icons.toggle_on,
-                              color:
-                                  user["isActive"] ? Colors.red : Colors.green,
-                            ),
-                            onPressed: () => _toggleUserStatus(user["email"]),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteUser(user["email"]),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage.isNotEmpty
+                      ? Center(child: Text(_errorMessage))
+                      : ListView.builder(
+                          itemCount: _users.length,
+                          itemBuilder: (context, index) {
+                            final user = _users[index];
+                            return Card(
+                              elevation: 3,
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              child: ListTile(
+                                title: Text(user["email"]),
+                                subtitle: Text(
+                                  user["isActive"] ? "Aktiv" : "Inaktiv",
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        user["isActive"]
+                                            ? Icons.toggle_off
+                                            : Icons.toggle_on,
+                                        color: user["isActive"]
+                                            ? Colors.red
+                                            : Colors.green,
+                                      ),
+                                      onPressed: () => _toggleUserStatus(
+                                          user["email"], user["isActive"]),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
+                                      onPressed: () =>
+                                          _deleteUser(user["email"]),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
             ),
           ],
         ),
