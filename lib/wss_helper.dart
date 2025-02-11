@@ -138,7 +138,7 @@ class WssHelper {
             .substring(resultTranscription.indexOf('LLM Response:') + 13);
         lastTranscription = transcription;
       }
-      /*RegExp regex = RegExp(r"'content':\s*'([^']*)'");
+      RegExp regex = RegExp(r"'content':\s*'([^']*)'");
       //RegExp regex = RegExp(r'^\s*LLM Response:\s*(.*)$');
       Match? match = regex.firstMatch(resultTranscription!);
       if (match != null) {
@@ -148,7 +148,7 @@ class WssHelper {
         lastTranscription = transcription;
       } else {
         print('Kein gültiger Text gefunden.');
-      }*/
+      }
       print('[WssHelper] Transcription received, closing Socket.');
     } catch (e) {
       print('[WssHelper] WebSocket error during audio streaming: $e');

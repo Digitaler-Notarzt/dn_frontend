@@ -144,7 +144,7 @@ class AuthenticationHelper extends ChangeNotifier {
     if (organization) {
       token = await _storage.read(key: 'organization_jwt_token');
     } else {
-      token = await _storage.read(key: 'jwt_token');
+      token = await _storage.read(key: 'user_jwt_token');
     }
     if (token != null) {
       return token;

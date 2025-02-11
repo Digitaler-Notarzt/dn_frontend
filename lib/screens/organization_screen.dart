@@ -162,7 +162,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
+                    children: [
                       CircularProgressIndicator(),
                     ],
                   ),
