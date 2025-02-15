@@ -17,8 +17,16 @@ class ErrorListener extends StatelessWidget {
               context: context,
               builder: (context) {
                 return AlertDialog(
-                  title: const Text('Fehler', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
-                  content: Text(errorMessage),
+                  title: const Text(
+                    'Fehler',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  ),
+                  content: Text(
+                    errorMessage,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 16),
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () {

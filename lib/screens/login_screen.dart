@@ -1,6 +1,7 @@
 import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:digitaler_notarzt/widgets/error_listener.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +27,11 @@ class LoginScreenState extends State<LoginScreen> {
       ErrorNotifier().showError("Bitte alle Felder ausfüllen.");
       return;
     }
+
+    if (!EmailValidator.validate(username)) {
+      ErrorNotifier().showError("Angegebene E-Mail ist ungültig.");
+      return;
+    } 
 
     if (isOrganization) {
       success = await authHelper.organizationLogin(username, password);
