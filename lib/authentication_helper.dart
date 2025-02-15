@@ -9,9 +9,11 @@ class AuthenticationHelper extends ChangeNotifier {
   final String baseUrl = 'https://stuppnig.ddns.net';
   bool _isAuthenticated = false;
   bool _isOrganization = false;
+  String _lastError = 'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Eingabe.';
 
   bool get isAuthenticated => _isAuthenticated;
   bool get isOrganization => _isOrganization;
+  String get lastError => _lastError;
 
   AuthenticationHelper() {
     _checkLoginStatus();
@@ -75,6 +77,7 @@ class AuthenticationHelper extends ChangeNotifier {
       }
     } on TimeoutException {
       print('[Authentication] Timeout');
+      _lastError = "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
       return false;
     } on Exception catch (e) {
       print('[Authentication] Fehler: $e');
@@ -125,6 +128,7 @@ class AuthenticationHelper extends ChangeNotifier {
       }
     } on TimeoutException {
       print('[Authentication] Timeout');
+      _lastError = "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
       return false;
     } on Exception catch (e) {
       print('[Authentication] Fehler: $e');

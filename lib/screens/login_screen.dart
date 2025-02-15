@@ -40,8 +40,7 @@ class LoginScreenState extends State<LoginScreen> {
         context.go('/chat');
       }
     } else {
-      ErrorNotifier().showError(
-          'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Eingabe.');
+      ErrorNotifier().showError(authHelper.lastError);
     }
   }
 
