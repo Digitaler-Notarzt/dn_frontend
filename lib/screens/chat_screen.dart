@@ -207,8 +207,8 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
           title: const Text('Digitaler Notarzt'),
-          actions: [
-            PopupMenu(dismissKeyboard: _dismissKeyboard),
+          actions: const [
+            PopupMenu(),
           ],
         ),
         body: ErrorListener(

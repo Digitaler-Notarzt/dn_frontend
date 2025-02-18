@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class PopupMenu extends StatelessWidget {
-  final void Function() dismissKeyboard;
 
-  const PopupMenu({Key? key, required this.dismissKeyboard}) : super(key: key);
+  const PopupMenu({Key? key}) : super(key: key);
+
 
   void _onMenuSelected(BuildContext context, String result) async {
     switch (result) {
@@ -34,7 +34,6 @@ class PopupMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       onSelected: (String result) {
-        dismissKeyboard();
         _onMenuSelected(context, result);
       },
       itemBuilder: (BuildContext context) => const <PopupMenuEntry<String>>[

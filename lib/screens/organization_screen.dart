@@ -1,4 +1,5 @@
 import 'package:digitaler_notarzt/organization_helper.dart';
+import 'package:digitaler_notarzt/widgets/popup_menu.dart';
 import 'package:flutter/material.dart';
 
 class OrganizationScreen extends StatefulWidget {
@@ -150,6 +151,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
       appBar: AppBar(
         title: const Text("Organisations-Management"),
         centerTitle: true,
+        actions: const [PopupMenu()],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

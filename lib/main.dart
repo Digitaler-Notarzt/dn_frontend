@@ -78,7 +78,7 @@ class MyApp extends StatelessWidget {
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => ProfileScreen(),//LoginScreen(),
+          builder: (context, state) => const LoginScreen(),
         ),
         GoRoute(
           path: '/chat',
@@ -94,7 +94,7 @@ class MyApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => ProfileScreen(),
+          builder: (context, state) => const ProfileScreen(),
         ),
       ],
     );
