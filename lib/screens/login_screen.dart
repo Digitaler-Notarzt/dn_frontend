@@ -31,7 +31,7 @@ class LoginScreenState extends State<LoginScreen> {
     if (!EmailValidator.validate(username)) {
       ErrorNotifier().showError("Angegebene E-Mail ist ungültig.");
       return;
-    } 
+    }
 
     if (isOrganization) {
       success = await authHelper.organizationLogin(username, password);
@@ -48,6 +48,76 @@ class LoginScreenState extends State<LoginScreen> {
     } else {
       ErrorNotifier().showError(authHelper.lastError);
     }
+  }
+
+  Future<void> _resetPassword(BuildContext context) async {
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: Colors.grey[100],
+            title: const Text("Passwort zurücksetzen"),
+            content: TextField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                labelText: 'E-Mail',
+                prefixIcon: const Icon(Icons.email_outlined),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      return;
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Abbrechen"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Weiter"),
+                  ),
+                ],
+              )
+            ],
+          );
+        });
+
+    final email = _usernameController.text;
+    if (!EmailValidator.validate(email)) {
+      ErrorNotifier().showError(
+          "Angegebene E-Mail, zum Passwort zurücksetzen, ist ungültig.");
+      return;
+    }
+
+    //TODO authHelper.resetPassword
+    context.push('/verification?email=${Uri.encodeComponent(email)}');
   }
 
   @override
@@ -154,7 +224,18 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                     obscureText: true,
                   ),
-                  const SizedBox(height: 20),
+                  if (!isOrganization) ...[
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                          onPressed: () => _resetPassword(context),
+                          child: const Text("Passwort vergessen")),
+                    ),
+                  ],
+                  SizedBox(height: isOrganization ? 20 : 5),
                   ElevatedButton(
                     onPressed: () => _login(isOrganization: isOrganization),
                     style: ElevatedButton.styleFrom(

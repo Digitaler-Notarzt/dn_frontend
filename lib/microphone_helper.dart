@@ -16,7 +16,7 @@ class MicrophoneHelper {
     _audioStreamSubscription = const Stream.empty();
     await _wssHelper.waitForStreamToFinish();
     print('Running Stream, waiting for it to end...');
-   
+
     //_wssHelper.closeConnection();
     isStreaming = false;
     print("Streaming stopped");
@@ -50,10 +50,12 @@ class MicrophoneHelper {
 
     try {
       //await stream('ws://10.0.0.112:8000/audio-stream?token=');
-      bool con = await _wssHelper.initialize(
-          'wss://stuppnig.ddns.net/user/audio-stream?token=');
+      bool con = await _wssHelper.initialize('wss://stuppnig.ddns.net/user/audio-stream?token=');
       if (con) {
-        lastStreamSuccess = await _wssHelper.streamAudio(_audioStreamSubscription).whenComplete(() => lastTranscription = _wssHelper.lastTranscription);
+        lastStreamSuccess = await _wssHelper
+            .streamAudio(_audioStreamSubscription)
+            .whenComplete(
+                () => lastTranscription = _wssHelper.lastTranscription);
       } else {
         lastStreamSuccess = false;
         streamer.stop();

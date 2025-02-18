@@ -3,6 +3,7 @@ import 'package:digitaler_notarzt/microphone_helper.dart';
 import 'package:digitaler_notarzt/notifier/stream_notifier.dart';
 import 'package:digitaler_notarzt/screens/login_screen.dart';
 import 'package:digitaler_notarzt/screens/organization_screen.dart';
+import 'package:digitaler_notarzt/screens/verify_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -62,8 +63,9 @@ class MyApp extends StatelessWidget {
         final isOrganization = authHelper.isOrganization;
 
         final goingToLogin = state.matchedLocation == '/';
+        final goingToVerification = state.matchedLocation == '/verification';
 
-        if (!isLoggedIn && !goingToLogin) {
+        if (!isLoggedIn && !(goingToLogin || goingToVerification)) {
           return '/';
         }
         if (isLoggedIn && goingToLogin) {
@@ -96,6 +98,13 @@ class MyApp extends StatelessWidget {
           path: '/profile',
           builder: (context, state) => const ProfileScreen(),
         ),
+        GoRoute(
+          path: '/verification',
+          builder: (context, state) {
+            final email = state.uri.queryParameters['email'] ?? '';
+            return VerificationScreen(email: email);
+          },
+        )
       ],
     );
   }
