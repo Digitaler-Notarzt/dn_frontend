@@ -39,12 +39,11 @@ class MyApp extends StatelessWidget {
       title: 'Digitaler Notarzt',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFFEB2340),
+            //seedColor: const Color(0xFFEB2340),
+            seedColor: Colors.teal,
             dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
         useMaterial3: true,
         appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFFEB2340),
-            foregroundColor: Colors.white,
             elevation: 20,
             centerTitle: true),
       ),
@@ -96,7 +95,7 @@ class MyApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => const ProfileScreen(),
+          builder: (context, state) => ProfileScreen(),
         ),
         GoRoute(
           path: '/verification',

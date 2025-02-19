@@ -206,7 +206,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
-          title: const Text('Digitaler Notarzt'),
+          title: const Text('Digitaler Notarzt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400),),
           actions: const [
             PopupMenu(),
           ],

@@ -1,7 +1,9 @@
+import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +98,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  print('Button pressed');
+                  Provider.of<AuthenticationHelper>(context, listen: false).changePassword(_currentPasswordController.text, _newPasswordController.text);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(16),

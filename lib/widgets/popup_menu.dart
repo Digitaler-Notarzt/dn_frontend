@@ -11,10 +11,10 @@ class PopupMenu extends StatelessWidget {
   void _onMenuSelected(BuildContext context, String result) async {
     switch (result) {
       case 'settings':
-        context.go('/settings');
+        context.push('/settings');
         break;
       case 'profile':
-        context.go('/profile');
+        context.push('/profile');
         break;
       case 'logout':
         print('clicked logout');

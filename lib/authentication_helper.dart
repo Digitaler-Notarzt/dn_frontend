@@ -9,7 +9,8 @@ class AuthenticationHelper extends ChangeNotifier {
   final String baseUrl = 'https://stuppnig.ddns.net';
   bool _isAuthenticated = false;
   bool _isOrganization = false;
-  String _lastError = 'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Eingabe.';
+  String _lastError =
+      'Login fehlgeschlagen. Bitte überprüfen Sie Ihre Eingabe.';
 
   bool get isAuthenticated => _isAuthenticated;
   bool get isOrganization => _isOrganization;
@@ -77,7 +78,8 @@ class AuthenticationHelper extends ChangeNotifier {
       }
     } on TimeoutException {
       print('[Authentication] Timeout');
-      _lastError = "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
+      _lastError =
+          "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
       return false;
     } on Exception catch (e) {
       print('[Authentication] Fehler: $e');
@@ -128,7 +130,8 @@ class AuthenticationHelper extends ChangeNotifier {
       }
     } on TimeoutException {
       print('[Authentication] Timeout');
-      _lastError = "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
+      _lastError =
+          "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
       return false;
     } on Exception catch (e) {
       print('[Authentication] Fehler: $e');
@@ -141,6 +144,40 @@ class AuthenticationHelper extends ChangeNotifier {
     _isOrganization = false;
     notifyListeners();
     await _storage.deleteAll();
+  }
+
+  Future<bool> changePassword(String oldpw, String newpw) async {
+    final encodedOldpw = Uri.encodeComponent(oldpw);
+    final encodedNewpw = Uri.encodeComponent(newpw);
+    final String authToken = await getToken(false);
+    try {
+      final response = await http.post(
+        Uri.parse(
+            '$baseUrl/user/changepassword?old_secret=$encodedOldpw&new_secret=$encodedNewpw'),
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer $authToken',
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        print("[Authentication] Password changed");
+        return true;
+      }else {
+        print(
+            '[Authentication] Failed ${response.statusCode}, ${response.body}');
+        return false;
+      }
+    } on TimeoutException {
+      print('[Authentication] Timeout');
+      _lastError =
+          "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
+      return false;
+    } on Exception catch (e) {
+      print('[Authentication] Fehler: $e');
+      return false;
+    }
   }
 
   static Future<String> getToken(bool organization) async {
