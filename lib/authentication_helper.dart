@@ -180,6 +180,68 @@ class AuthenticationHelper extends ChangeNotifier {
     }
   }
 
+  Future<bool> requestPasswordReset(String email) async{
+    final encodedEmail = Uri.encodeComponent(email);
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '$baseUrl/user/reset-password/request?email=$encodedEmail'),
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        print("[Authentication] Password reset requested");
+        return true;
+      }else {
+        print(
+            '[Authentication] Failed ${response.statusCode}, ${response.body}');
+        return false;
+      }
+    } on TimeoutException {
+      print('[Authentication] Timeout');
+      _lastError =
+          "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
+      return false;
+    } on Exception catch (e) {
+      print('[Authentication] Fehler: $e');
+      return false;
+    }
+  }
+
+  Future<bool> verfiyResetAuthCode (String code) async {
+    final encodedCode = Uri.encodeComponent(code);
+    try {
+      final response = await http.post(
+        Uri.parse(
+            '$baseUrl/user/reset-password/validate?code=$encodedCode'),
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        print("[Authentication] Password reset code verified");
+        return true;
+      }else {
+        print(
+            '[Authentication] Failed ${response.statusCode}, ${response.body}');
+        return false;
+      }
+    } on TimeoutException {
+      print('[Authentication] Timeout');
+      _lastError =
+          "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
+      return false;
+    } on Exception catch (e) {
+      print('[Authentication] Fehler: $e');
+      return false;
+    }
+  }
+
   static Future<String> getToken(bool organization) async {
     String? token;
     if (organization) {

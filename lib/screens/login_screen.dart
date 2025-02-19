@@ -90,6 +90,7 @@ class LoginScreenState extends State<LoginScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () {
+                      Provider.of<AuthenticationHelper>(context, listen: false).requestPasswordReset(_usernameController.text);
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(

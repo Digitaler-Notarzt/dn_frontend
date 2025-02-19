@@ -1,6 +1,8 @@
+import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String email;
@@ -13,9 +15,10 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen> {
   TextEditingController codeController = TextEditingController();
 
-  void _verifyCode() {
+  void _verifyCode() async{
     String code = codeController.text.trim();
-    if (code == "123456") {
+    bool valide = await Provider.of<AuthenticationHelper>(listen: false, context).verfiyResetAuthCode(code);
+    if (valide) {
       // Dummy-Code, hier API-Aufruf einfügen
       context.go('/resetpassword');
     } else {
@@ -49,10 +52,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     labelText: "Verifizierungscode",
                     border: OutlineInputBorder(),
                   ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly
-                  ],
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
