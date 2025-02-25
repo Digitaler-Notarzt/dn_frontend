@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -164,7 +165,7 @@ class AuthenticationHelper extends ChangeNotifier {
       if (response.statusCode == 200) {
         print("[Authentication] Password changed");
         return true;
-      }else {
+      } else {
         print(
             '[Authentication] Failed ${response.statusCode}, ${response.body}');
         return false;
@@ -180,12 +181,11 @@ class AuthenticationHelper extends ChangeNotifier {
     }
   }
 
-  Future<bool> requestPasswordReset(String email) async{
+  Future<bool> requestPasswordReset(String email) async {
     final encodedEmail = Uri.encodeComponent(email);
     try {
       final response = await http.get(
-        Uri.parse(
-            '$baseUrl/user/reset-password/request?email=$encodedEmail'),
+        Uri.parse('$baseUrl/user/reset-password/request?email=$encodedEmail'),
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -195,7 +195,7 @@ class AuthenticationHelper extends ChangeNotifier {
       if (response.statusCode == 200) {
         print("[Authentication] Password reset requested");
         return true;
-      }else {
+      } else {
         print(
             '[Authentication] Failed ${response.statusCode}, ${response.body}');
         return false;
@@ -211,12 +211,11 @@ class AuthenticationHelper extends ChangeNotifier {
     }
   }
 
-  Future<bool> verfiyResetAuthCode (String code) async {
+  Future<bool> verfiyResetAuthCode(String code) async {
     final encodedCode = Uri.encodeComponent(code);
     try {
       final response = await http.post(
-        Uri.parse(
-            '$baseUrl/user/reset-password/validate?code=$encodedCode'),
+        Uri.parse('$baseUrl/user/reset-password/validate?code=$encodedCode'),
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -226,7 +225,7 @@ class AuthenticationHelper extends ChangeNotifier {
       if (response.statusCode == 200) {
         print("[Authentication] Password reset code verified");
         return true;
-      }else {
+      } else {
         print(
             '[Authentication] Failed ${response.statusCode}, ${response.body}');
         return false;
@@ -244,10 +243,14 @@ class AuthenticationHelper extends ChangeNotifier {
 
   static Future<String> getToken(bool organization) async {
     String? token;
-    if (organization) {
-      token = await _storage.read(key: 'organization_jwt_token');
-    } else {
-      token = await _storage.read(key: 'user_jwt_token');
+    try {
+      if (organization) {
+        token = await _storage.read(key: 'organization_jwt_token');
+      } else {
+        token = await _storage.read(key: 'user_jwt_token');
+      }
+    } on Exception catch (e) {
+      print("[Key] Failed to read $e");
     }
     if (token != null) {
       return token;

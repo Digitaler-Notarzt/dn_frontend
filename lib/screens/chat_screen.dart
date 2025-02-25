@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:digitaler_notarzt/authentication_helper.dart';
+import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:digitaler_notarzt/notifier/stream_notifier.dart';
 import 'package:digitaler_notarzt/widgets/error_listener.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -6,6 +11,7 @@ import 'package:digitaler_notarzt/messages.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';
 import 'package:digitaler_notarzt/widgets/popup_menu.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -121,49 +127,86 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     });
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_controller.text.trim().isNotEmpty) {
-      // Nachricht senden und das UI aktualisieren
+      String userText = _controller.text.trim();
+
       setState(() {
         messages.add(TextMessage(
-            id: UniqueKey().toString(),
-            text: Text(
-              _controller.text.trim(),
-              style: const TextStyle(color: Colors.white),
-            ),
-            isUserMessage: true));
+          id: UniqueKey().toString(),
+          text: Text(
+            userText,
+            style: const TextStyle(color: Colors.white),
+          ),
+          isUserMessage: true,
+        ));
         _controller.clear();
         _scrollToBottom();
       });
 
-      if (kIsWeb) {
-        // Verzögerte Antwort im Web
-        Future.delayed(const Duration(seconds: 2), () {
-          setState(() {
-            messages.add(TextMessage(
-                id: UniqueKey().toString(),
-                text: const Text('Nachricht erhalten'),
-                isUserMessage: false));
-            _scrollToBottom(); // Scroll nach dem Empfang der Antwort
-          });
-        });
-      } else {
-        // Verzögerte Antwort auf mobilen Geräten
-        Future.delayed(const Duration(seconds: 2), () {
-          setState(() {
-            messages.add(TextMessage(
-                id: UniqueKey().toString(),
-                text: const Text('Nachricht erhalten'),
-                isUserMessage: false));
-            _scrollToBottom(); // Scroll nach dem Empfang der Antwort
-          });
-        });
-      }
+      String encodedText = Uri.encodeComponent(userText);
+      String authToken = await AuthenticationHelper.getToken(false);
+      String responseText = "Keine Antwort erhalten";
 
-      // Scroll nach dem Senden der Nachricht
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToBottom();
-      });
+      try {
+        final response = await http.get(
+          Uri.parse(
+              'https://stuppnig.ddns.net/user/request-text?text=$encodedText'),
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Bearer $authToken',
+          },
+        ).timeout(const Duration(seconds: 15));
+
+        if (response.statusCode == 200) {
+          print("[Text] Answer received ${response.body}");
+          responseText = response.body;
+        } else {
+          print('[Text] Failed ${response.statusCode}, ${response.body}');
+          return;
+        }
+        String content = "";
+        try {
+          RegExp regex = RegExp(r"'content':\s*'([^']*)'");
+          Match? match = regex.firstMatch(responseText);
+          if (match != null) {
+            String content = match.group(1) ?? '';
+            print(content); // Gibt den extrahierten Text aus
+          } else {
+            print("Kein Content gefunden.");
+          }
+        } catch (e) {
+          print('[Text] Fehler beim Parsen der inneren JSON: $e');
+          ErrorNotifier().showError("Ungültiges Antwortformat vom Server.");
+          return;
+        }
+
+        if (content == "") {
+          setState(() {
+            messages.add(TextMessage(
+              id: UniqueKey().toString(),
+              text: Text(responseText,
+                  style: const TextStyle(color: Colors.white)),
+              isUserMessage: false,
+            ));
+            _scrollToBottom();
+          });
+        } else {
+          print('[Text] Ungültige Nachrichtenstruktur');
+          ErrorNotifier().showError("Ungültige Antwort vom Server.");
+        }
+      } on TimeoutException {
+        print('[Text] Timeout');
+        ErrorNotifier().showError(
+            "Fehler beim Verbindungsaupbau. Bitte versuchen Sie es später erneut!");
+      } on FormatException catch (e) {
+        print('[Text] JSON Format Error: $e');
+        ErrorNotifier().showError("Antwort konnte nicht verarbeitet werden.");
+      } on Exception catch (e) {
+        print('[Text] Fehler: $e');
+        ErrorNotifier().showError(e.toString());
+      }
     }
   }
 
@@ -206,7 +249,10 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.primary,
-          title: const Text('Digitaler Notarzt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400),),
+          title: const Text(
+            'Digitaler Notarzt',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400),
+          ),
           actions: const [
             PopupMenu(),
           ],
@@ -242,63 +288,60 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
   }
 
   Widget _buildTextMessageBubble(TextMessage message) {
-  bool isPending = message.text.data!.contains("Antwort wird verarbeitet...");
+    bool isPending = message.text.data!.contains("Antwort wird verarbeitet...");
 
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Align(
-      alignment: message.isUserMessage
-          ? Alignment.centerRight
-          : Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment: message.isUserMessage
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start,
-        children: [
-          Text(
-            message.isUserMessage ? 'Ich' : 'Digitaler Notarzt',
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.black54),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.65),
-            decoration: BoxDecoration(
-              color: message.isUserMessage
-                  ? Colors.grey[400]
-                  : Colors.redAccent,
-              borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Align(
+        alignment: message.isUserMessage
+            ? Alignment.centerRight
+            : Alignment.centerLeft,
+        child: Column(
+          crossAxisAlignment: message.isUserMessage
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
+          children: [
+            Text(
+              message.isUserMessage ? 'Ich' : 'Digitaler Notarzt',
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.black54),
             ),
-            padding:
-                const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-            child: isPending
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+            const SizedBox(height: 4),
+            Container(
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.65),
+              decoration: BoxDecoration(
+                color:
+                    message.isUserMessage ? Colors.grey[400] : Colors.redAccent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+              child: isPending
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        message.text.data!,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  )
-                : message.text,
-          ),
-        ],
+                        const SizedBox(width: 8),
+                        Text(
+                          message.text.data!,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    )
+                  : message.text,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildAudioMessageBubble(AudioMessage message) {
     return Padding(
@@ -369,13 +412,15 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
             ),
           ),
           IconButton(
-            onPressed: _toggleRecording/*() {
+            onPressed:
+                _toggleRecording /*() {
               if (streamNotifier.isRecording) {
                 streamNotifier.stopRecording();
               } else {
                 streamNotifier.startRecording();
               }
-            },*/,
+            },*/
+            ,
             icon: Icon(streamNotifier.isRecording ? Icons.stop : Icons.mic),
             color: Colors.green[400],
             iconSize: 40.0,
