@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatelessWidget {
-  ProfileScreen({super.key});
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +26,8 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Angemeldet als: email',
+              Text(
+                'Angemeldet als: ${Provider.of<AuthenticationHelper>(context, listen: false).email}',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
@@ -52,9 +52,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showChangePasswordDialog(context) {
-    final TextEditingController _currentPasswordController =
+    final TextEditingController currentPasswordController =
         TextEditingController();
-    final TextEditingController _newPasswordController =
+    final TextEditingController newPasswordController =
         TextEditingController();
 
     showDialog(
@@ -69,7 +69,7 @@ class ProfileScreen extends StatelessWidget {
                 height: 10,
               ),
               TextField(
-                controller: _currentPasswordController,
+                controller: currentPasswordController,
                 decoration: InputDecoration(
                   labelText: 'Aktuelles Passwort',
                   prefixIcon: const Icon(Icons.lock_outline),
@@ -83,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextField(
-                controller: _newPasswordController,
+                controller: newPasswordController,
                 decoration: InputDecoration(
                   labelText: 'Neues Passwort',
                   prefixIcon: const Icon(Icons.lock_reset),
@@ -98,7 +98,7 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Provider.of<AuthenticationHelper>(context, listen: false).changePassword(_currentPasswordController.text, _newPasswordController.text);
+                  Provider.of<AuthenticationHelper>(context, listen: false).changePassword(currentPasswordController.text, newPasswordController.text);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.all(16),

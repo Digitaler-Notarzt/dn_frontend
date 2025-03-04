@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -16,6 +15,8 @@ class AuthenticationHelper extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
   bool get isOrganization => _isOrganization;
   String get lastError => _lastError;
+  String _email = "";
+  String get email => _email;
 
   AuthenticationHelper() {
     _checkLoginStatus();
@@ -70,6 +71,7 @@ class AuthenticationHelper extends ChangeNotifier {
         print(
             '[Storage] User-Token: ${await _storage.read(key: 'user_jwt_token')}');
         _isAuthenticated = true;
+        _email = username;
         notifyListeners();
         return true;
       } else {
@@ -122,6 +124,7 @@ class AuthenticationHelper extends ChangeNotifier {
             '[Storage] Organization-Token: ${await _storage.read(key: 'organization_jwt_token')}');
         _isAuthenticated = true;
         _isOrganization = true;
+        _email = username;
         notifyListeners();
         return true;
       } else {
@@ -143,6 +146,7 @@ class AuthenticationHelper extends ChangeNotifier {
   Future<void> logout() async {
     _isAuthenticated = false;
     _isOrganization = false;
+    _email = "";
     notifyListeners();
     await _storage.deleteAll();
   }
@@ -256,6 +260,20 @@ class AuthenticationHelper extends ChangeNotifier {
     }
     if (token != null) {
       return token;
+    } else {
+      return '';
+    }
+  }
+
+  static Future<String> getEmail() async {
+    String? email;
+    try {
+      email = await _storage.read(key: 'username');
+    } on Exception catch (e) {
+      print("[Key] Failed to read $e");
+    }
+    if (email != null) {
+      return email;
     } else {
       return '';
     }

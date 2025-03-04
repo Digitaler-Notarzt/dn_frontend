@@ -5,7 +5,6 @@ import 'package:digitaler_notarzt/authentication_helper.dart';
 import 'package:digitaler_notarzt/error_helper.dart';
 import 'package:digitaler_notarzt/notifier/stream_notifier.dart';
 import 'package:digitaler_notarzt/widgets/error_listener.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:digitaler_notarzt/messages.dart';
 import 'package:digitaler_notarzt/microphone_helper.dart';

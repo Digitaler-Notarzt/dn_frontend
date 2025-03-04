@@ -3,6 +3,8 @@ import 'package:digitaler_notarzt/widgets/popup_menu.dart';
 import 'package:flutter/material.dart';
 
 class OrganizationScreen extends StatefulWidget {
+  const OrganizationScreen({super.key});
+
   @override
   _OrganizationScreenState createState() => _OrganizationScreenState();
 }
