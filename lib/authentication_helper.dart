@@ -147,14 +147,16 @@ class AuthenticationHelper extends ChangeNotifier {
     await _storage.deleteAll();
   }
 
-  Future<bool> changePassword(String oldpw, String newpw) async {
+  Future<bool> changePassword(
+      String oldpw, String newpw) async {
     final encodedOldpw = Uri.encodeComponent(oldpw);
     final encodedNewpw = Uri.encodeComponent(newpw);
-    final String authToken = await getToken(false);
+    final String authToken = await getToken(isOrganization);
+    final String url =
+        "$baseUrl/${isOrganization ? "organization" : "user"}/changepassword?old_secret=$encodedOldpw&new_secret=$encodedNewpw";
     try {
       final response = await http.post(
-        Uri.parse(
-            '$baseUrl/user/changepassword?old_secret=$encodedOldpw&new_secret=$encodedNewpw'),
+        Uri.parse(url),
         headers: {
           'accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded',

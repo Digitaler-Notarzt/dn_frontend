@@ -157,11 +157,11 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': 'Bearer $authToken',
           },
-        ).timeout(const Duration(seconds: 15));
+        ).timeout(const Duration(seconds: 30));
 
         if (response.statusCode == 200) {
           print("[Text] Answer received ${response.body}");
-          responseText = response.body;
+          responseText = utf8.decode(response.bodyBytes);
         } else {
           print('[Text] Failed ${response.statusCode}, ${response.body}');
           return;
