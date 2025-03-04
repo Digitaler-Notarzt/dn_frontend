@@ -3,6 +3,7 @@ import 'package:digitaler_notarzt/microphone_helper.dart';
 import 'package:digitaler_notarzt/notifier/stream_notifier.dart';
 import 'package:digitaler_notarzt/screens/login_screen.dart';
 import 'package:digitaler_notarzt/screens/organization_screen.dart';
+import 'package:digitaler_notarzt/screens/passwordreset_screen.dart';
 import 'package:digitaler_notarzt/screens/verify_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -43,9 +44,7 @@ class MyApp extends StatelessWidget {
             seedColor: Colors.teal,
             dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
         useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-            elevation: 20,
-            centerTitle: true),
+        appBarTheme: const AppBarTheme(elevation: 20, centerTitle: true),
       ),
       routerConfig: _createRouter(context),
     );
@@ -63,8 +62,9 @@ class MyApp extends StatelessWidget {
 
         final goingToLogin = state.matchedLocation == '/';
         final goingToVerification = state.matchedLocation == '/verification';
+        final goingToReset = state.matchedLocation == '/resetpassword';
 
-        if (!isLoggedIn && !(goingToLogin || goingToVerification)) {
+        if (!isLoggedIn && !(goingToLogin || goingToVerification || goingToReset)) {
           return '/';
         }
         if (isLoggedIn && goingToLogin) {
@@ -87,7 +87,7 @@ class MyApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/organization',
-          builder: (context, state) => OrganizationScreen(),
+          builder: (context, state) => const OrganizationScreen(),
         ),
         GoRoute(
           path: '/settings',
@@ -95,13 +95,21 @@ class MyApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/profile',
-          builder: (context, state) => ProfileScreen(),
+          builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
           path: '/verification',
           builder: (context, state) {
             final email = state.uri.queryParameters['email'] ?? '';
             return VerificationScreen(email: email);
+          },
+        ),
+        GoRoute(
+          path: '/resetpassword',
+          builder: (context, state) {
+            final email = state.uri.queryParameters['email'] ?? '';
+            final code = state.uri.queryParameters['code'] ?? '';
+            return ResetPasswordScreen(email: email, codeValue: code);
           },
         )
       ],

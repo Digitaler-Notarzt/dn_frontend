@@ -18,8 +18,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     String code = codeController.text.trim();
     bool valide = await Provider.of<AuthenticationHelper>(listen: false, context).verfiyResetAuthCode(code);
     if (valide) {
-      // Dummy-Code, hier API-Aufruf einfügen
-      context.go('/resetpassword');
+      context.go('/resetpassword?email=${widget.email}&code=$code');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Ungültiger Code")),

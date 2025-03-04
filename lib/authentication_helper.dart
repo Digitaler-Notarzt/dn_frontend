@@ -151,8 +151,7 @@ class AuthenticationHelper extends ChangeNotifier {
     await _storage.deleteAll();
   }
 
-  Future<bool> changePassword(
-      String oldpw, String newpw) async {
+  Future<bool> changePassword(String oldpw, String newpw) async {
     final encodedOldpw = Uri.encodeComponent(oldpw);
     final encodedNewpw = Uri.encodeComponent(newpw);
     final String authToken = await getToken(isOrganization);
@@ -276,6 +275,41 @@ class AuthenticationHelper extends ChangeNotifier {
       return email;
     } else {
       return '';
+    }
+  }
+
+  Future<bool> resetPassword(String email, String code, String newpw) async {
+    final encodedEmail = Uri.encodeComponent(email);
+    final encodedNewpw = Uri.encodeComponent(newpw);
+    final encodedCode = Uri.encodeComponent(code);
+    final String authToken = await getToken(isOrganization);
+    final String url =
+        "$baseUrl/user/reset-password/reset?email=$encodedEmail&code_value=$encodedCode&new_secret=$encodedNewpw";
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        print("[Authentication] Password reset successful");
+        return true;
+      } else {
+        print(
+            '[Authentication] Failed ${response.statusCode}, ${response.body}');
+        return false;
+      }
+    } on TimeoutException {
+      print('[Authentication] Timeout');
+      _lastError =
+          "Fehler beim Verbindungsaufbau. Bitter versuchen Sie es später erneut!";
+      return false;
+    } on Exception catch (e) {
+      print('[Authentication] Fehler: $e');
+      return false;
     }
   }
 }
